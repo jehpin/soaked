@@ -6,7 +6,7 @@ import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
-// Initialize Gemini API client lazily or safely
+// Initialize Gemini API client
 const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY || "",
   httpOptions: {
@@ -22,7 +22,7 @@ interface CacheItem<T> {
 }
 
 const cache: Record<string, CacheItem<any>> = {};
-const CACHE_TTL_MS = 60 * 1000; // 1 minute cache for government weather data
+const CACHE_TTL_MS = 60 * 1000; // 1 minute cache for data.gov.sg
 
 async function fetchWithCache<T>(key: string, url: string): Promise<T | null> {
   const cached = cache[key];
@@ -51,7 +51,7 @@ async function fetchWithCache<T>(key: string, url: string): Promise<T | null> {
   }
 }
 
-// Fallback SG Towns data if offline
+// Fallback SG Towns data if offline or rate limited
 const FALLBACK_TOWNS = [
   { area: "Jurong West", forecast: "Moderate Rain" },
   { area: "Clementi", forecast: "Light Rain" },
@@ -80,7 +80,13 @@ const FALLBACK_TOWNS = [
   { area: "Tuas", forecast: "Heavy Thundery Showers" },
 ];
 
-function calculateUmbrellaScore(forecast: string, rainfallMm: number, uvIndex: number, windSpeedKnots: number) {
+function calculateUmbrellaScore(
+  forecast: string,
+  rainfallMm: number,
+  uvIndex: number,
+  windSpeedKnots: number,
+  humidity: number = 75
+) {
   let score = 20; // baseline cautious Singaporean score
 
   const f = forecast.toLowerCase();
@@ -97,13 +103,20 @@ function calculateUmbrellaScore(forecast: string, rainfallMm: number, uvIndex: n
   }
 
   // Rainfall sensor addition
-  if (rainfallMm > 5) score += 35;
-  else if (rainfallMm > 0.5) score += 20;
+  if (rainfallMm > 10) score += 40;
+  else if (rainfallMm > 2) score += 30;
+  else if (rainfallMm > 0.2) score += 20;
   else if (rainfallMm > 0) score += 10;
 
   // UV protection addition (Singaporeans carry brollies for both rain & scorching sun!)
-  if (uvIndex >= 9) score += 25;
-  else if (uvIndex >= 6) score += 15;
+  if (uvIndex >= 10) score += 30;
+  else if (uvIndex >= 7) score += 20;
+  else if (uvIndex >= 5) score += 10;
+
+  // High humidity + overcast multiplier
+  if (humidity >= 85 && (f.includes("cloud") || f.includes("shower"))) {
+    score += 10;
+  }
 
   // Cap score 1 - 100
   score = Math.max(1, Math.min(100, Math.round(score)));
@@ -136,38 +149,309 @@ async function startServer() {
 
   app.use(express.json());
 
-  // API 1: Live Singapore Weather Aggregator
-  app.get("/api/weather/live", async (req, res) => {
+  // ==========================================
+  // 1. API: 2-Hour Weather Forecast (data.gov.sg d_6580738cdd7db79374ed3152159fbd69)
+  // ==========================================
+  app.get("/api/weather/2hr-forecast", async (req, res) => {
     try {
-      const requestedArea = (req.query.area as string) || "Jurong West";
-
-      // 1. Fetch 2-hour weather forecast
-      const forecastData = await fetchWithCache<any>(
+      const data = await fetchWithCache<any>(
         "forecast-2hr",
         "https://api.data.gov.sg/v1/environment/2-hour-weather-forecast"
       );
+      if (data) {
+        return res.json({
+          success: true,
+          datasetId: "d_6580738cdd7db79374ed3152159fbd69",
+          apiEndpoint: "https://api.data.gov.sg/v1/environment/2-hour-weather-forecast",
+          items: data.items,
+          area_metadata: data.area_metadata,
+          valid_period: data.items?.[0]?.valid_period,
+          forecasts: data.items?.[0]?.forecasts || FALLBACK_TOWNS,
+        });
+      }
+      res.json({
+        success: true,
+        source: "fallback",
+        forecasts: FALLBACK_TOWNS,
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
 
-      // 2. Fetch rainfall
+  // ==========================================
+  // 2. API: Rainfall Readings (data.gov.sg d_1b676cd174a9af4704fdb3f9aa58ff5e)
+  // ==========================================
+  app.get("/api/weather/rainfall", async (req, res) => {
+    try {
+      const data = await fetchWithCache<any>(
+        "rainfall",
+        "https://api.data.gov.sg/v1/environment/rainfall"
+      );
+      if (data) {
+        return res.json({
+          success: true,
+          datasetId: "d_1b676cd174a9af4704fdb3f9aa58ff5e",
+          apiEndpoint: "https://api.data.gov.sg/v1/environment/rainfall",
+          metadata: data.metadata,
+          stations: data.metadata?.stations || [],
+          readings: data.items?.[0]?.readings || [],
+          timestamp: data.items?.[0]?.timestamp,
+        });
+      }
+      res.json({
+        success: true,
+        source: "fallback",
+        stations: [],
+        readings: [{ station_id: "S109", value: 0.0 }],
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ==========================================
+  // 3. API: UV Index
+  // ==========================================
+  app.get("/api/weather/uv-index", async (req, res) => {
+    try {
+      const data = await fetchWithCache<any>(
+        "uv-index",
+        "https://api.data.gov.sg/v1/environment/uv-index"
+      );
+      if (data && data.items && data.items[0]) {
+        const records = data.items[0].index || [];
+        const latest = records[records.length - 1] || { value: 6, timestamp: new Date().toISOString() };
+        return res.json({
+          success: true,
+          apiEndpoint: "https://api.data.gov.sg/v1/environment/uv-index",
+          latestUV: latest.value,
+          timestamp: latest.timestamp,
+          records,
+        });
+      }
+      // Fallback
+      const hour = new Date().getHours();
+      const mockUV = hour >= 11 && hour <= 15 ? 9.0 : hour >= 8 && hour <= 17 ? 5.5 : 0;
+      res.json({
+        success: true,
+        source: "fallback",
+        latestUV: mockUV,
+        timestamp: new Date().toISOString(),
+        records: [{ value: mockUV, timestamp: new Date().toISOString() }],
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ==========================================
+  // 4. API: Air Temperature
+  // ==========================================
+  app.get("/api/weather/temperature", async (req, res) => {
+    try {
+      const data = await fetchWithCache<any>(
+        "temperature",
+        "https://api.data.gov.sg/v1/environment/air-temperature"
+      );
+      if (data) {
+        return res.json({
+          success: true,
+          apiEndpoint: "https://api.data.gov.sg/v1/environment/air-temperature",
+          metadata: data.metadata,
+          readings: data.items?.[0]?.readings || [],
+          timestamp: data.items?.[0]?.timestamp,
+        });
+      }
+      res.json({
+        success: true,
+        source: "fallback",
+        readings: [{ station_id: "S109", value: 31.5 }],
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ==========================================
+  // 5. API: Relative Humidity
+  // ==========================================
+  app.get("/api/weather/humidity", async (req, res) => {
+    try {
+      const data = await fetchWithCache<any>(
+        "humidity",
+        "https://api.data.gov.sg/v1/environment/relative-humidity"
+      );
+      if (data) {
+        return res.json({
+          success: true,
+          apiEndpoint: "https://api.data.gov.sg/v1/environment/relative-humidity",
+          metadata: data.metadata,
+          readings: data.items?.[0]?.readings || [],
+          timestamp: data.items?.[0]?.timestamp,
+        });
+      }
+      res.json({
+        success: true,
+        source: "fallback",
+        readings: [{ station_id: "S109", value: 80 }],
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ==========================================
+  // 6. API: Wind Speed & Direction
+  // ==========================================
+  app.get("/api/weather/wind-speed", async (req, res) => {
+    try {
+      const data = await fetchWithCache<any>(
+        "wind-speed",
+        "https://api.data.gov.sg/v1/environment/wind-speed"
+      );
+      const dirData = await fetchWithCache<any>(
+        "wind-direction",
+        "https://api.data.gov.sg/v1/environment/wind-direction"
+      );
+      return res.json({
+        success: true,
+        apiEndpoint: "https://api.data.gov.sg/v1/environment/wind-speed",
+        speedReadings: data?.items?.[0]?.readings || [],
+        directionReadings: dirData?.items?.[0]?.readings || [],
+        timestamp: data?.items?.[0]?.timestamp,
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ==========================================
+  // 7. API: 24-Hour Weather Forecast
+  // ==========================================
+  app.get("/api/weather/24hr-forecast", async (req, res) => {
+    try {
+      const data = await fetchWithCache<any>(
+        "forecast-24hr",
+        "https://api.data.gov.sg/v1/environment/24-hour-weather-forecast"
+      );
+      if (data) {
+        return res.json({
+          success: true,
+          apiEndpoint: "https://api.data.gov.sg/v1/environment/24-hour-weather-forecast",
+          items: data.items,
+          general: data.items?.[0]?.general,
+          periods: data.items?.[0]?.periods || [],
+        });
+      }
+      res.json({
+        success: true,
+        source: "fallback",
+        general: {
+          forecast: "Passing Showers",
+          relative_humidity: { low: 65, high: 95 },
+          temperature: { low: 25, high: 32 },
+          wind: { speed: { low: 10, high: 20 }, direction: "SSE" },
+        },
+        periods: [],
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ==========================================
+  // 8. API: 4-Day Weather Outlook
+  // ==========================================
+  app.get("/api/weather/4day-outlook", async (req, res) => {
+    try {
+      const data = await fetchWithCache<any>(
+        "forecast-4day",
+        "https://api.data.gov.sg/v1/environment/4-day-weather-forecast"
+      );
+      if (data && data.items && data.items[0]) {
+        return res.json({
+          success: true,
+          apiEndpoint: "https://api.data.gov.sg/v1/environment/4-day-weather-forecast",
+          forecasts: data.items[0].forecasts || [],
+        });
+      }
+      res.json({
+        success: true,
+        source: "fallback",
+        forecasts: [
+          { day: "Tomorrow", forecast: "Thundery Showers", temperature: { low: 24, high: 31 } },
+          { day: "Day +2", forecast: "Moderate Rain", temperature: { low: 25, high: 32 } },
+          { day: "Day +3", forecast: "Passing Showers", temperature: { low: 24, high: 32 } },
+          { day: "Day +4", forecast: "Fair (Day)", temperature: { low: 26, high: 33 } },
+        ],
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ==========================================
+  // 9. API: Geospatial Radar & Rainfall Stations Map
+  // ==========================================
+  app.get("/api/weather/radar-stations", async (req, res) => {
+    try {
       const rainfallData = await fetchWithCache<any>(
         "rainfall",
         "https://api.data.gov.sg/v1/environment/rainfall"
       );
-
-      // 3. Fetch UV index
-      const uvData = await fetchWithCache<any>(
-        "uv-index",
-        "https://api.data.gov.sg/v1/environment/uv-index"
-      );
-
-      // 4. Fetch Air Temp & Wind
       const tempData = await fetchWithCache<any>(
         "temperature",
         "https://api.data.gov.sg/v1/environment/air-temperature"
       );
-      const windData = await fetchWithCache<any>(
-        "wind-speed",
-        "https://api.data.gov.sg/v1/environment/wind-speed"
-      );
+
+      const stations = rainfallData?.metadata?.stations || [];
+      const readings = rainfallData?.items?.[0]?.readings || [];
+      const tempReadings = tempData?.items?.[0]?.readings || [];
+
+      const mergedStations = stations.map((s: any) => {
+        const r = readings.find((item: any) => item.station_id === s.id);
+        const t = tempReadings.find((item: any) => item.station_id === s.id);
+        return {
+          id: s.id,
+          name: s.name,
+          latitude: s.location?.latitude || 1.35,
+          longitude: s.location?.longitude || 103.82,
+          rainfallMm: r?.value ?? 0,
+          temperature: t?.value ?? null,
+          hasRain: (r?.value ?? 0) > 0,
+        };
+      });
+
+      res.json({
+        success: true,
+        totalStations: mergedStations.length,
+        rainActiveStations: mergedStations.filter((s: any) => s.hasRain).length,
+        timestamp: rainfallData?.items?.[0]?.timestamp || new Date().toISOString(),
+        stations: mergedStations,
+      });
+    } catch (err: any) {
+      res.status(500).json({ success: false, error: err.message });
+    }
+  });
+
+  // ==========================================
+  // 10. Master Aggregated Live Singapore Weather API
+  // ==========================================
+  app.get("/api/weather/live", async (req, res) => {
+    try {
+      const requestedArea = (req.query.area as string) || "Jurong West";
+
+      // Parallel fetch all real-time feeds
+      const [forecastData, rainfallData, uvData, tempData, windData, humidityData] =
+        await Promise.all([
+          fetchWithCache<any>("forecast-2hr", "https://api.data.gov.sg/v1/environment/2-hour-weather-forecast"),
+          fetchWithCache<any>("rainfall", "https://api.data.gov.sg/v1/environment/rainfall"),
+          fetchWithCache<any>("uv-index", "https://api.data.gov.sg/v1/environment/uv-index"),
+          fetchWithCache<any>("temperature", "https://api.data.gov.sg/v1/environment/air-temperature"),
+          fetchWithCache<any>("wind-speed", "https://api.data.gov.sg/v1/environment/wind-speed"),
+          fetchWithCache<any>("humidity", "https://api.data.gov.sg/v1/environment/relative-humidity"),
+        ]);
 
       // Process Towns Forecast
       let towns: { area: string; forecast: string }[] = FALLBACK_TOWNS;
@@ -187,19 +471,24 @@ async function startServer() {
       }
 
       // Find matched town or default
-      const matchedTown = towns.find(
-        (t) => t.area.toLowerCase() === requestedArea.toLowerCase()
-      ) || towns[0] || { area: requestedArea, forecast: "Partly Cloudy" };
+      const matchedTown =
+        towns.find((t) => t.area.toLowerCase() === requestedArea.toLowerCase()) ||
+        towns[0] || { area: requestedArea, forecast: "Partly Cloudy" };
 
       // Process UV
       let uvValue = 6;
       let uvTimestamp = new Date().toISOString();
-      if (uvData && uvData.items && uvData.items[0] && Array.isArray(uvData.items[0].index) && uvData.items[0].index.length > 0) {
+      if (
+        uvData &&
+        uvData.items &&
+        uvData.items[0] &&
+        Array.isArray(uvData.items[0].index) &&
+        uvData.items[0].index.length > 0
+      ) {
         const latestUV = uvData.items[0].index[uvData.items[0].index.length - 1];
         uvValue = latestUV.value ?? 6;
         uvTimestamp = latestUV.timestamp || uvTimestamp;
       } else {
-        // Mock realistic daytime/nighttime UV if missing
         const currentHour = new Date().getHours();
         if (currentHour >= 11 && currentHour <= 15) uvValue = 8.5;
         else if (currentHour >= 8 && currentHour <= 18) uvValue = 4.5;
@@ -220,7 +509,7 @@ async function startServer() {
         const readings = rainfallData.items[0].readings;
         const stationsMeta = rainfallData.metadata?.stations || [];
         
-        // Pick station closest to area or with highest rainfall
+        // Pick station with highest rainfall or first valid reading
         const activeReading = readings.find((r: any) => r.value > 0) || readings[0];
         if (activeReading) {
           rainfallMm = activeReading.value || 0;
@@ -249,16 +538,22 @@ async function startServer() {
         windSpeed = windData.items[0].readings[0].value || 8.5;
       }
 
+      // Process Humidity
+      let humidity = 78;
+      if (humidityData?.items?.[0]?.readings?.[0]) {
+        humidity = humidityData.items[0].readings[0].value || 78;
+      }
+
       const { score: umbrellaScore, verdict } = calculateUmbrellaScore(
         matchedTown.forecast,
         rainfallMm,
         uvValue,
-        windSpeed
+        windSpeed,
+        humidity
       );
 
       const sunscreenScore = Math.min(100, Math.round(uvValue * 9.5));
 
-      // Choose a quirky hot take
       const randomHotTake =
         QUIRKY_HOT_TAKES_BANK[
           Math.floor(Math.random() * QUIRKY_HOT_TAKES_BANK.length)
@@ -281,13 +576,17 @@ async function startServer() {
           status: rainStatus,
         },
         temperature,
-        humidity: 78,
+        humidity,
         windSpeed,
         umbrellaScore,
         sunscreenScore,
         verdict,
         hotTake: randomHotTake,
         source: forecastData ? "live_data_gov_sg" : "fallback",
+        datasets: {
+          forecast2hr: "d_6580738cdd7db79374ed3152159fbd69",
+          rainfall: "d_1b676cd174a9af4704fdb3f9aa58ff5e",
+        },
       });
     } catch (err: any) {
       console.error("[Weather Live Aggregator Error]:", err);
@@ -295,7 +594,23 @@ async function startServer() {
     }
   });
 
-  // API 2: Gemini-Powered Quirky Hot Take & Excuse Generator
+  // ==========================================
+  // 11. API: Umbrella Score Calculation Simulator
+  // ==========================================
+  app.post("/api/weather/calculate-index", (req, res) => {
+    const { forecast = "Cloudy", rainfallMm = 0, uvIndex = 6, windSpeed = 8, humidity = 75 } = req.body;
+    const result = calculateUmbrellaScore(forecast, Number(rainfallMm), Number(uvIndex), Number(windSpeed), Number(humidity));
+    res.json({
+      success: true,
+      input: { forecast, rainfallMm, uvIndex, windSpeed, humidity },
+      ...result,
+      sunscreenScore: Math.min(100, Math.round(Number(uvIndex) * 9.5)),
+    });
+  });
+
+  // ==========================================
+  // 12. API: Gemini AI Quirky Hot Take & Excuse Generator
+  // ==========================================
   app.post("/api/gemini/hot-take", async (req, res) => {
     try {
       const { area, forecast, rainfallMm, uvIndex, temperature, umbrellaScore } = req.body;
@@ -369,7 +684,9 @@ Output format (JSON):
     }
   });
 
-  // API 3: Sheltered Route Advisor (Quirky proposition from Slide 3)
+  // ==========================================
+  // 13. API: Sheltered Route Advisor (Slide 3)
+  // ==========================================
   app.post("/api/gemini/sheltered-route", async (req, res) => {
     try {
       const { origin, destination, rainIntensity } = req.body;
@@ -426,6 +743,50 @@ Output JSON:
         ],
         singlishVerdict: "SOLID SHELTER STRATEGY",
       });
+    }
+  });
+
+  // ==========================================
+  // 14. API: Hourly Breakdown Analysis
+  // ==========================================
+  app.post("/api/gemini/hourly-analysis", async (req, res) => {
+    try {
+      const { area = "Jurong West", currentScore = 65 } = req.body;
+      if (process.env.GEMINI_API_KEY) {
+        const prompt = `Give a 6-hour umbrella need forecast for ${area} in Singapore with current base umbrella score ${currentScore}.
+Output JSON format:
+{
+  "hourly": [
+    {"hour": "+1 hr", "umbrellaRisk": 70, "recommendation": "Heavy shower clouds moving in from Malacca Strait", "icon": "rain"},
+    {"hour": "+2 hr", "umbrellaRisk": 85, "recommendation": "Flash downpour peak! Stay in office or carry brolly", "icon": "thunder"},
+    {"hour": "+3 hr", "umbrellaRisk": 40, "recommendation": "Rain clearing, high humidity evaporation", "icon": "cloud"},
+    {"hour": "+4 hr", "umbrellaRisk": 65, "recommendation": "Blazing afternoon UV peak! Switch to sun parasol", "icon": "sun"},
+    {"hour": "+5 hr", "umbrellaRisk": 30, "recommendation": "Pleasant evening breeze", "icon": "fair"},
+    {"hour": "+6 hr", "umbrellaRisk": 20, "recommendation": "Safe to head home without worry", "icon": "fair"}
+  ]
+}`;
+        const response = await ai.models.generateContent({
+          model: "gemini-3.7-flash",
+          contents: prompt,
+          config: { responseMimeType: "application/json" },
+        });
+        if (response.text) {
+          return res.json(JSON.parse(response.text));
+        }
+      }
+
+      res.json({
+        hourly: [
+          { hour: "+1 hr", umbrellaRisk: Math.min(100, currentScore + 10), recommendation: "Rain clouds building up over Western reservoir", icon: "rain" },
+          { hour: "+2 hr", umbrellaRisk: Math.min(100, currentScore + 20), recommendation: "Peak rain risk! Carry brolly without fail", icon: "thunder" },
+          { hour: "+3 hr", umbrellaRisk: Math.max(10, currentScore - 15), recommendation: "Shower dissipating into tropical steam", icon: "cloud" },
+          { hour: "+4 hr", umbrellaRisk: 75, recommendation: "Blazing UV 9+! Sun umbrella required", icon: "sun" },
+          { hour: "+5 hr", umbrellaRisk: 35, recommendation: "Cool evening breeze setting in", icon: "fair" },
+          { hour: "+6 hr", umbrellaRisk: 20, recommendation: "Low rain risk for dinner run", icon: "fair" },
+        ],
+      });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message });
     }
   });
 

@@ -6,11 +6,11 @@ export interface TownForecast {
 export interface RainfallStation {
   id: string;
   name: string;
-  location: {
-    latitude: number;
-    longitude: number;
-  };
-  value: number; // mm in last 5 mins
+  latitude: number;
+  longitude: number;
+  rainfallMm: number;
+  temperature?: number | null;
+  hasRain: boolean;
 }
 
 export interface UVData {
@@ -51,6 +51,10 @@ export interface SGWeatherData {
   verdict: 'LEAVE IT' | 'PROBABLY OK' | 'CONSIDER BRINGING' | 'TAKE IT!' | 'EMERGENCY BROLLY DEFCON 1';
   hotTake: string;
   source: 'live_data_gov_sg' | 'fallback';
+  datasets?: {
+    forecast2hr: string;
+    rainfall: string;
+  };
 }
 
 export interface ShelteredRouteAdvice {
@@ -65,6 +69,35 @@ export interface ShelteredRouteAdvice {
 export interface ExcuseHotTake {
   headline: string;
   body: string;
-  mood: 'sassy' | 'panicked' | 'sunny' | 'singlish' | 'dramatic';
-  score: number;
+  singlishVerdict?: string;
+  excuseForBoss?: string;
+  mood?: 'sassy' | 'panicked' | 'sunny' | 'singlish' | 'dramatic';
+  score?: number;
+}
+
+export interface HourlyForecastItem {
+  hour: string;
+  umbrellaRisk: number;
+  recommendation: string;
+  icon: 'rain' | 'thunder' | 'cloud' | 'sun' | 'fair';
+}
+
+export interface FourDayOutlookItem {
+  day: string;
+  forecast: string;
+  temperature: {
+    low: number;
+    high: number;
+  };
+}
+
+export interface ApiEndpointSpec {
+  id: string;
+  name: string;
+  method: 'GET' | 'POST';
+  endpoint: string;
+  datasetId?: string;
+  description: string;
+  govUrl?: string;
+  sampleBody?: any;
 }

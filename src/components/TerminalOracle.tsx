@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { SGWeatherData, ExcuseHotTake } from '../types';
+import React, { useState, useEffect } from 'react';
+import { SGWeatherData, ExcuseHotTake, HourlyForecastItem } from '../types';
 import { playTerminalBeep, playThunderRumble, playSunSizzle, playUmbrellaPop } from '../utils/audio';
 import { 
   CloudRain, 
@@ -10,7 +10,11 @@ import {
   Volume2, 
   VolumeX, 
   Compass, 
-  ChevronDown
+  ChevronDown,
+  Wind,
+  Droplets,
+  Thermometer,
+  Clock
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -34,6 +38,35 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
   const [rollingTake, setRollingTake] = useState(false);
   const [customTake, setCustomTake] = useState<ExcuseHotTake | null>(null);
   const [showTownDropdown, setShowTownDropdown] = useState(false);
+  const [hourlyForecast, setHourlyForecast] = useState<HourlyForecastItem[]>([]);
+  const [loadingHourly, setLoadingHourly] = useState(false);
+
+  // Fetch 6-hour prediction
+  useEffect(() => {
+    if (!weather) return;
+    const fetchHourly = async () => {
+      setLoadingHourly(true);
+      try {
+        const res = await fetch('/api/gemini/hourly-analysis', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            area: weather.selectedArea,
+            currentScore: weather.umbrellaScore,
+          }),
+        });
+        const data = await res.json();
+        if (data.hourly) {
+          setHourlyForecast(data.hourly);
+        }
+      } catch (e) {
+        console.warn('Hourly forecast fallback', e);
+      } finally {
+        setLoadingHourly(false);
+      }
+    };
+    fetchHourly();
+  }, [weather?.selectedArea, weather?.umbrellaScore]);
 
   if (!weather && loading) {
     return (
@@ -270,56 +303,131 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
         )}
       </div>
 
-      {/* Telemetry Grid (UV Index + Nearest Rainfall) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6">
+      {/* Full 4-Panel Real-Time Telemetry Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 my-6">
         
-        {/* UV Index Box */}
-        <div className="p-5 bg-[#FF6B6B] text-white border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_#000000] flex flex-col justify-between">
-          <div className="flex items-center justify-between font-black uppercase mb-3">
-            <span className="flex items-center gap-2 text-sm">
-              <Sun className="w-5 h-5 text-[#FFD93D]" />
+        {/* Panel 1: UV Index */}
+        <div className="p-4 bg-[#FF6B6B] text-white border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000] flex flex-col justify-between">
+          <div className="flex items-center justify-between font-black uppercase mb-1 text-xs">
+            <span className="flex items-center gap-1">
+              <Sun className="w-4 h-4 text-[#FFD93D]" />
               UV Index
             </span>
-            <span className="px-2.5 py-1 bg-black text-[#FFD93D] border-2 border-white rounded-full text-xs">
+            <span className="px-2 py-0.5 bg-black text-[#FFD93D] border border-white rounded-full text-[10px]">
               {weather.uvIndex.status}
             </span>
           </div>
-          <div className="text-3xl sm:text-4xl font-black mb-1">
-            {weather.uvIndex.value.toFixed(1)}{' '}
-            <span className="text-xs font-bold uppercase opacity-90">
-              ({weather.uvIndex.value >= 8 ? 'High Sunburn Risk' : weather.uvIndex.value >= 4 ? 'Moderate' : 'Low'})
-            </span>
+          <div className="text-2xl font-black my-1">
+            {weather.uvIndex.value.toFixed(1)}
           </div>
-          <div className="text-xs font-bold bg-white text-black p-2 rounded-xl border-2 border-black mt-2">
-            Threat Level:{' '}
-            <span className={weather.uvIndex.value >= 8 ? 'text-[#FF6B6B] font-black' : 'text-emerald-700 font-black'}>
-              {weather.uvIndex.value >= 8 ? 'Extreme (Char Siew risk)' : 'Tolerable'}
-            </span>
+          <div className="text-[10px] font-bold bg-white text-black p-1.5 rounded-xl border border-black truncate">
+            {weather.uvIndex.value >= 8 ? 'Extreme (Char Siew risk)' : 'Tolerable UV'}
           </div>
         </div>
 
-        {/* Nearest Rainfall Box */}
-        <div className="p-5 bg-white text-black border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_#000000] flex flex-col justify-between">
-          <div className="flex items-center justify-between font-black uppercase mb-3">
-            <span className="flex items-center gap-2 text-sm text-[#4D96FF]">
-              <CloudRain className="w-5 h-5" />
-              Nearest Rainfall
+        {/* Panel 2: Nearest Rainfall */}
+        <div className="p-4 bg-white text-black border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000] flex flex-col justify-between">
+          <div className="flex items-center justify-between font-black uppercase mb-1 text-xs">
+            <span className="flex items-center gap-1 text-[#4D96FF]">
+              <CloudRain className="w-4 h-4" />
+              Rainfall (5m)
             </span>
-            <span className="px-2.5 py-1 bg-[#4D96FF] text-white border-2 border-black rounded-full text-xs">
+            <span className="px-2 py-0.5 bg-[#4D96FF] text-white border border-black rounded-full text-[10px]">
               {weather.nearestRainfall.status}
             </span>
           </div>
-          <div className="text-3xl sm:text-4xl font-black mb-1 text-black">
-            {weather.nearestRainfall.rainfallMm.toFixed(1)} mm{' '}
-            <span className="text-xs font-bold text-zinc-600 uppercase">/ 5 min</span>
+          <div className="text-2xl font-black my-1">
+            {weather.nearestRainfall.rainfallMm.toFixed(1)} <span className="text-xs font-bold text-zinc-500">mm</span>
           </div>
-          <div className="text-xs font-bold bg-[#FFD93D] p-2 rounded-xl border-2 border-black mt-2 truncate">
-            Station: <span className="text-black font-black">{weather.nearestRainfall.stationName}</span>
+          <div className="text-[10px] font-bold bg-[#FFD93D] p-1.5 rounded-xl border border-black truncate">
+            {weather.nearestRainfall.stationName}
           </div>
         </div>
+
+        {/* Panel 3: Wind Speed Telemetry */}
+        <div className="p-4 bg-[#6BCB77] text-black border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000] flex flex-col justify-between">
+          <div className="flex items-center justify-between font-black uppercase mb-1 text-xs">
+            <span className="flex items-center gap-1">
+              <Wind className="w-4 h-4" />
+              Wind Speed
+            </span>
+            <span className="px-2 py-0.5 bg-black text-white border border-black rounded-full text-[10px]">
+              {weather.windSpeed > 15 ? 'Gusty' : 'Gentle'}
+            </span>
+          </div>
+          <div className="text-2xl font-black my-1">
+            {weather.windSpeed.toFixed(1)} <span className="text-xs font-bold text-zinc-700">knots</span>
+          </div>
+          <div className="text-[10px] font-bold bg-white text-black p-1.5 rounded-xl border border-black truncate">
+            {weather.windSpeed > 15 ? 'Hold umbrella tight!' : 'Calm breeze'}
+          </div>
+        </div>
+
+        {/* Panel 4: Temperature & Humidity */}
+        <div className="p-4 bg-white text-black border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000] flex flex-col justify-between">
+          <div className="flex items-center justify-between font-black uppercase mb-1 text-xs">
+            <span className="flex items-center gap-1 text-[#FF6B6B]">
+              <Thermometer className="w-4 h-4" />
+              Air Temp &amp; RH
+            </span>
+            <span className="flex items-center gap-0.5 text-[10px] font-black text-blue-600">
+              <Droplets className="w-3 h-3" />
+              {weather.humidity}%
+            </span>
+          </div>
+          <div className="text-2xl font-black my-1">
+            {weather.temperature.toFixed(1)} <span className="text-xs font-bold text-zinc-500">°C</span>
+          </div>
+          <div className="text-[10px] font-bold bg-[#FFD93D] p-1.5 rounded-xl border border-black truncate">
+            {weather.humidity >= 85 ? 'High Tropical Humidity' : 'Comfortable'}
+          </div>
+        </div>
+
       </div>
 
-      {/* Roll Another Excuse Button (Slide 3 prompt) */}
+      {/* 6-Hour Prediction Timeline Strip */}
+      {hourlyForecast.length > 0 && (
+        <div className="my-6 p-4 bg-zinc-50 border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000]">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5 text-xs font-black uppercase text-black">
+              <Clock className="w-3.5 h-3.5 text-[#4D96FF]" />
+              <span>Next 6 Hours Umbrella Risk Timeline:</span>
+            </div>
+            {loadingHourly && (
+              <span className="text-[10px] font-bold text-zinc-500 animate-pulse">Updating...</span>
+            )}
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+            {hourlyForecast.map((h, i) => (
+              <div
+                key={i}
+                className="bg-white border-2 border-black rounded-xl p-2 flex flex-col justify-between text-center shadow-[2px_2px_0px_0px_#000000]"
+              >
+                <div className="text-[11px] font-black uppercase text-black">{h.hour}</div>
+                <div className="my-1">
+                  <span
+                    className={`inline-block px-2 py-0.5 rounded-md text-xs font-black border border-black ${
+                      h.umbrellaRisk >= 70
+                        ? 'bg-[#FF6B6B] text-white'
+                        : h.umbrellaRisk >= 40
+                        ? 'bg-[#FFD93D] text-black'
+                        : 'bg-[#6BCB77] text-black'
+                    }`}
+                  >
+                    {h.umbrellaRisk}%
+                  </span>
+                </div>
+                <div className="text-[9px] font-bold text-black/80 truncate" title={h.recommendation}>
+                  {h.recommendation}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Roll Another Excuse Button */}
       <div className="text-center pt-2">
         <button
           id="btn-roll-excuse"

@@ -5,9 +5,9 @@ import { ShelteredRouteFinder } from './components/ShelteredRouteFinder';
 import { NotificationSimulator } from './components/NotificationSimulator';
 import { RadarScanner } from './components/RadarScanner';
 import { SurvivalKit } from './components/SurvivalKit';
+import { ApiHub } from './components/ApiHub';
 import { toggleMute, getMuteState, playTerminalBeep } from './utils/audio';
 import { 
-  Umbrella, 
   Volume2, 
   VolumeX, 
   Sparkles, 
@@ -16,8 +16,8 @@ import {
   BellRing,
   Radar,
   PackageCheck,
-  Activity,
-  Zap
+  Database,
+  Code
 } from 'lucide-react';
 
 export default function App() {
@@ -25,7 +25,7 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedArea, setSelectedArea] = useState('Jurong West');
-  const [activeTab, setActiveTab] = useState<'oracle' | 'shelter' | 'radar' | 'notifications' | 'gear'>('oracle');
+  const [activeTab, setActiveTab] = useState<'oracle' | 'shelter' | 'radar' | 'notifications' | 'gear' | 'apihub'>('oracle');
   const [isMuted, setIsMuted] = useState(getMuteState());
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [currentTime, setCurrentTime] = useState<string>('');
@@ -132,9 +132,13 @@ export default function App() {
 
           <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             {/* Live API Badge */}
-            <div className="bg-[#6BCB77] px-3.5 py-1.5 border-2 border-black rounded-full font-black uppercase text-xs flex items-center gap-2 shadow-[2px_2px_0px_0px_#000000]">
+            <div 
+              onClick={() => { playTerminalBeep(); setActiveTab('apihub'); }}
+              className="bg-[#6BCB77] hover:bg-[#5bb867] px-3.5 py-1.5 border-2 border-black rounded-full font-black uppercase text-xs flex items-center gap-2 shadow-[2px_2px_0px_0px_#000000] cursor-pointer"
+              title="Click to view Live API Explorer"
+            >
               <span className="w-2.5 h-2.5 bg-white rounded-full animate-pulse border border-black"></span>
-              <span>Live API</span>
+              <span>13 APIs Live</span>
             </div>
 
             {/* Clock Badge */}
@@ -231,6 +235,21 @@ export default function App() {
             <PackageCheck className="w-4 h-4" />
             <span>Survival Gear</span>
           </button>
+
+          <button
+            onClick={() => {
+              playTerminalBeep();
+              setActiveTab('apihub');
+            }}
+            className={`px-4 py-2.5 border-3 border-black rounded-2xl font-black uppercase text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === 'apihub'
+                ? 'bg-black text-[#6BCB77] shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
+                : 'bg-white text-black hover:bg-zinc-100 shadow-[3px_3px_0px_0px_#000000]'
+            }`}
+          >
+            <Database className="w-4 h-4 text-[#6BCB77]" />
+            <span>Live API Hub</span>
+          </button>
         </nav>
 
         {/* Error Notification */}
@@ -254,8 +273,9 @@ export default function App() {
                 isSpeaking={isSpeaking}
               />
 
-              {/* 3-Column Vibrant Feature Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-4xl mx-auto">
+              {/* 4-Column Vibrant Feature Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
+                
                 {/* Card 1: Sheltered Routes */}
                 <div 
                   onClick={() => { playTerminalBeep(); setActiveTab('shelter'); }}
@@ -265,7 +285,7 @@ export default function App() {
                     <div className="w-10 h-10 bg-white border-2 border-black rounded-xl flex items-center justify-center text-black mb-3 shadow-[2px_2px_0px_0px_#000000]">
                       <Footprints className="w-5 h-5 text-[#4D96FF]" />
                     </div>
-                    <h3 className="font-black text-lg uppercase tracking-tight mb-1">
+                    <h3 className="font-black text-base uppercase tracking-tight mb-1">
                       Sheltered Routes
                     </h3>
                     <p className="text-xs font-bold text-white/90 leading-snug">
@@ -287,7 +307,7 @@ export default function App() {
                     <div className="w-10 h-10 bg-white border-2 border-black rounded-xl flex items-center justify-center text-black mb-3 shadow-[2px_2px_0px_0px_#000000]">
                       <Radar className="w-5 h-5 text-[#6BCB77]" />
                     </div>
-                    <h3 className="font-black text-lg uppercase tracking-tight mb-1">
+                    <h3 className="font-black text-base uppercase tracking-tight mb-1">
                       47 Towns Radar
                     </h3>
                     <p className="text-xs font-bold text-black/80 leading-snug">
@@ -309,7 +329,7 @@ export default function App() {
                     <div className="w-10 h-10 bg-[#FFD93D] border-2 border-black rounded-xl flex items-center justify-center text-black mb-3 shadow-[2px_2px_0px_0px_#000000]">
                       <BellRing className="w-5 h-5" />
                     </div>
-                    <h3 className="font-black text-lg uppercase tracking-tight mb-1">
+                    <h3 className="font-black text-base uppercase tracking-tight mb-1">
                       Push Notifier (&gt;50%)
                     </h3>
                     <p className="text-xs font-bold text-black/70 leading-snug">
@@ -321,6 +341,29 @@ export default function App() {
                     <span>➔</span>
                   </div>
                 </div>
+
+                {/* Card 4: Live API Explorer */}
+                <div 
+                  onClick={() => { playTerminalBeep(); setActiveTab('apihub'); }}
+                  className="bg-black border-4 border-black rounded-3xl p-5 shadow-[6px_6px_0px_0px_#000000] hover:-translate-y-1 transition-all cursor-pointer text-white flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="w-10 h-10 bg-[#6BCB77] border-2 border-white rounded-xl flex items-center justify-center text-black mb-3 shadow-[2px_2px_0px_0px_#ffffff]">
+                      <Code className="w-5 h-5" />
+                    </div>
+                    <h3 className="font-black text-base uppercase tracking-tight mb-1 text-[#6BCB77]">
+                      Live API Hub
+                    </h3>
+                    <p className="text-xs font-bold text-zinc-300 leading-snug">
+                      Inspect and trigger all 13 data.gov.sg &amp; Gemini weather endpoints live.
+                    </p>
+                  </div>
+                  <div className="mt-4 pt-3 border-t-2 border-zinc-700 flex justify-between items-center text-xs font-black uppercase text-[#FFD93D]">
+                    <span>Inspect Endpoints</span>
+                    <span>➔</span>
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
@@ -347,13 +390,14 @@ export default function App() {
               umbrellaScore={weather?.umbrellaScore || 65}
             />
           )}
+          {activeTab === 'apihub' && <ApiHub />}
         </main>
 
         {/* Footer - Vibrant Neo-Brutalist Pill */}
         <footer className="bg-white border-4 border-black p-4 rounded-2xl shadow-[6px_6px_0px_0px_#000000] flex flex-wrap justify-between items-center gap-2 text-xs font-black uppercase tracking-wider">
           <div className="flex items-center gap-2">
             <span className="w-3 h-3 bg-[#6BCB77] border border-black rounded-full"></span>
-            <span>Data: data.gov.sg &amp; NEA Singapore Real-Time APIs</span>
+            <span>Data: data.gov.sg &amp; NEA Singapore Real-Time APIs (d_6580738c, d_1b676cd1)</span>
           </div>
           <div className="bg-[#FFD93D] px-3 py-1 border-2 border-black rounded-full font-bold">
             Singapore Weather Survival Oracle 🇸🇬 🌂
