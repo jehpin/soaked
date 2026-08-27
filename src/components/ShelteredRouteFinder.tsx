@@ -67,7 +67,7 @@ export const ShelteredRouteFinder: React.FC = () => {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-black pb-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[#4D96FF] text-white rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
+          <div className="p-3 bg-[#D946EF] text-white rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
             <Footprints className="w-6 h-6" />
           </div>
           <div>
@@ -80,7 +80,7 @@ export const ShelteredRouteFinder: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-[#6BCB77] px-3.5 py-1.5 border-2 border-black rounded-full text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000000]">
+        <div className="bg-[#FF4D94] text-white px-3.5 py-1.5 border-2 border-black rounded-full text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000000]">
           Void Deck Mode
         </div>
       </div>
@@ -99,7 +99,7 @@ export const ShelteredRouteFinder: React.FC = () => {
                 setDestination(route.destination);
                 handleCalculateRoute(route.origin, route.destination);
               }}
-              className="text-xs font-black uppercase px-3 py-1.5 bg-[#FFD93D] hover:bg-yellow-300 active:translate-x-0.5 active:translate-y-0.5 text-black rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_#000000] transition-all flex items-center gap-1.5 cursor-pointer"
+              className="text-xs font-black uppercase px-3 py-1.5 bg-[#FFE5EC] hover:bg-[#FFCCD5] active:translate-x-0.5 active:translate-y-0.5 text-black rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_#000000] transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <span>{route.origin}</span>
               <ArrowRight className="w-3.5 h-3.5 text-black" />
@@ -119,7 +119,7 @@ export const ShelteredRouteFinder: React.FC = () => {
             type="text"
             value={origin}
             onChange={(e) => setOrigin(e.target.value)}
-            className="w-full bg-white border-3 border-black rounded-2xl px-4 py-2.5 text-sm font-bold text-black focus:outline-none focus:bg-[#FFD93D]/20 shadow-[3px_3px_0px_0px_#000000]"
+            className="w-full bg-white border-3 border-black rounded-2xl px-4 py-2.5 text-sm font-bold text-black focus:outline-none focus:bg-[#FFE5EC] shadow-[3px_3px_0px_0px_#000000]"
             placeholder="e.g. Jurong West Blk 502"
           />
         </div>
@@ -132,7 +132,7 @@ export const ShelteredRouteFinder: React.FC = () => {
             type="text"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
-            className="w-full bg-white border-3 border-black rounded-2xl px-4 py-2.5 text-sm font-bold text-black focus:outline-none focus:bg-[#FFD93D]/20 shadow-[3px_3px_0px_0px_#000000]"
+            className="w-full bg-white border-3 border-black rounded-2xl px-4 py-2.5 text-sm font-bold text-black focus:outline-none focus:bg-[#FFE5EC] shadow-[3px_3px_0px_0px_#000000]"
             placeholder="e.g. Boon Lay Market"
           />
         </div>
@@ -142,7 +142,7 @@ export const ShelteredRouteFinder: React.FC = () => {
         id="btn-find-sheltered-route"
         onClick={() => handleCalculateRoute()}
         disabled={loading}
-        className="w-full py-3.5 bg-[#6BCB77] hover:bg-[#5bb867] active:translate-x-1 active:translate-y-1 active:shadow-none text-black font-black uppercase rounded-2xl border-3 border-black shadow-[4px_4px_0px_0px_#000000] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-sm sm:text-base mb-6"
+        className="w-full py-3.5 bg-[#FF2A85] hover:bg-[#ff1475] active:translate-x-1 active:translate-y-1 active:shadow-none text-white font-black uppercase rounded-2xl border-3 border-black shadow-[4px_4px_0px_0px_#000000] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 text-sm sm:text-base mb-6"
       >
         <Sparkles className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
         <span>{loading ? 'Analyzing Singapore Covered Walkway Mesh...' : 'Calculate 100% Sheltered Route'}</span>
@@ -150,24 +150,24 @@ export const ShelteredRouteFinder: React.FC = () => {
 
       {/* Route Result Display */}
       {routeAdvice && (
-        <div className="p-6 bg-[#4D96FF] text-white border-4 border-black rounded-3xl space-y-4 shadow-[6px_6px_0px_0px_#000000]">
+        <div className="p-6 bg-[#D946EF] text-white border-4 border-black rounded-3xl space-y-4 shadow-[6px_6px_0px_0px_#000000]">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-white/40 pb-3">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-6 h-6 text-[#FFD93D]" />
+              <ShieldCheck className="w-6 h-6 text-[#FFE5EC]" />
               <span className="font-black text-base sm:text-lg uppercase">
                 {routeAdvice.origin} ➔ {routeAdvice.destination}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="px-3.5 py-1 bg-black text-[#6BCB77] font-black border-2 border-white rounded-full text-xs uppercase shadow-[2px_2px_0px_0px_#ffffff]">
+              <span className="px-3.5 py-1 bg-black text-[#FFB3C6] font-black border-2 border-white rounded-full text-xs uppercase shadow-[2px_2px_0px_0px_#ffffff]">
                 {routeAdvice.shelterRating}% Sheltered
               </span>
             </div>
           </div>
 
           {/* Singlish Verdict */}
-          <div className="text-xs sm:text-sm font-black text-black bg-[#FFD93D] p-3 rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000] flex items-center gap-2 uppercase">
-            <Umbrella className="w-5 h-5 text-black shrink-0" />
+          <div className="text-xs sm:text-sm font-black text-black bg-[#FFE5EC] p-3 rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000] flex items-center gap-2 uppercase">
+            <Umbrella className="w-5 h-5 text-[#FF2A85] shrink-0" />
             <span>{routeAdvice.singlishVerdict}</span>
           </div>
 
@@ -179,7 +179,7 @@ export const ShelteredRouteFinder: React.FC = () => {
             <div className="space-y-2">
               {routeAdvice.landmarks.map((step, index) => (
                 <div key={index} className="flex items-start gap-3 bg-white text-black p-3 rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#FF6B6B] text-white border-2 border-black flex items-center justify-center text-xs font-black">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-[#FF2A85] text-white border-2 border-black flex items-center justify-center text-xs font-black">
                     {index + 1}
                   </span>
                   <span className="font-bold text-xs sm:text-sm">{step}</span>
@@ -190,7 +190,7 @@ export const ShelteredRouteFinder: React.FC = () => {
 
           {/* Quirky Tip */}
           <div className="p-4 bg-white text-black rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
-            <span className="font-black text-[#FF6B6B] uppercase">💡 SG Urban Survival Tip: </span>
+            <span className="font-black text-[#FF2A85] uppercase">💡 SG Urban Survival Tip: </span>
             <span className="font-bold text-xs sm:text-sm">{routeAdvice.quirkyTip}</span>
           </div>
         </div>

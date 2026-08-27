@@ -178,7 +178,7 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
               playTerminalBeep();
               setShowTownDropdown(!showTownDropdown);
             }}
-            className="flex items-center gap-2 bg-[#FFD93D] hover:bg-yellow-300 text-black px-4 py-2 rounded-2xl border-3 border-black font-black uppercase text-xs sm:text-sm shadow-[3px_3px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
+            className="flex items-center gap-2 bg-[#FFA8BA] hover:bg-[#ff94aa] text-black px-4 py-2 rounded-2xl border-3 border-black font-black uppercase text-xs sm:text-sm shadow-[3px_3px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none transition-all cursor-pointer"
           >
             <MapPin className="w-4 h-4 text-black" />
             <span>Singapore - {weather.selectedArea}</span>
@@ -188,7 +188,7 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
           {/* Town Dropdown Menu */}
           {showTownDropdown && (
             <div className="absolute left-0 top-full mt-2 w-72 max-h-80 overflow-y-auto bg-white border-4 border-black rounded-2xl shadow-[6px_6px_0px_0px_#000000] z-50 p-1.5 divide-y-2 divide-black text-xs font-black">
-              <div className="p-2.5 text-black bg-[#FFD93D] uppercase tracking-wider rounded-t-xl">
+              <div className="p-2.5 text-black bg-[#FFA8BA] uppercase tracking-wider rounded-t-xl">
                 📍 Select Singapore Town:
               </div>
               {weather.towns.map((t) => (
@@ -199,8 +199,8 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
                     onSelectArea(t.area);
                     setShowTownDropdown(false);
                   }}
-                  className={`w-full text-left px-3.5 py-2.5 flex items-center justify-between hover:bg-[#6BCB77]/30 transition-colors uppercase cursor-pointer ${
-                    t.area === weather.selectedArea ? 'bg-[#4D96FF] text-white' : 'text-black'
+                  className={`w-full text-left px-3.5 py-2.5 flex items-center justify-between hover:bg-[#FFE5EC] transition-colors uppercase cursor-pointer ${
+                    t.area === weather.selectedArea ? 'bg-[#FF2A85] text-white' : 'text-black'
                   }`}
                 >
                   <span className="font-black">{t.area}</span>
@@ -213,7 +213,7 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
 
         {/* Live Status indicator & Refresh */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-1.5 text-xs font-black uppercase bg-[#6BCB77] text-black px-3 py-1.5 rounded-full border-2 border-black shadow-[2px_2px_0px_0px_#000000]">
+          <div className="flex items-center gap-1.5 text-xs font-black uppercase bg-[#FF4D94] text-white px-3 py-1.5 rounded-full border-2 border-black shadow-[2px_2px_0px_0px_#000000]">
             <span className="w-2.5 h-2.5 bg-white rounded-full animate-pulse border border-black"></span>
             <span>Live NEA Data</span>
           </div>
@@ -225,7 +225,7 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
               onRefresh();
             }}
             disabled={loading}
-            className="flex items-center gap-1.5 bg-white hover:bg-zinc-100 text-black px-3.5 py-1.5 rounded-2xl border-3 border-black text-xs font-black uppercase transition-all shadow-[3px_3px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-50 cursor-pointer"
+            className="flex items-center gap-1.5 bg-white hover:bg-[#FFE5EC] text-black px-3.5 py-1.5 rounded-2xl border-3 border-black text-xs font-black uppercase transition-all shadow-[3px_3px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none disabled:opacity-50 cursor-pointer"
           >
             <RotateCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
@@ -235,7 +235,7 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
 
       {/* Main Title & Slogan */}
       <div className="text-center my-4">
-        <div className="inline-block bg-black text-[#FFD93D] px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest mb-2 shadow-[2px_2px_0px_0px_#000000]">
+        <div className="inline-block bg-black text-[#FFB3C6] px-3.5 py-1 rounded-full text-[11px] font-black uppercase tracking-widest mb-2 shadow-[2px_2px_0px_0px_#000000]">
           Singapore Real-Time Oracle
         </div>
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-black uppercase leading-tight mb-4">
@@ -246,7 +246,7 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
         <button
           id="btn-am-i-safe"
           onClick={handleAmISafeClick}
-          className="inline-flex items-center gap-2.5 px-8 py-3 bg-[#FF6B6B] hover:bg-[#ff5252] text-white font-black border-3 border-black rounded-2xl uppercase tracking-wider text-sm sm:text-base shadow-[4px_4px_0px_0px_#000000] hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all cursor-pointer"
+          className="inline-flex items-center gap-2.5 px-8 py-3 bg-[#FF2A85] hover:bg-[#ff1475] text-white font-black border-3 border-black rounded-2xl uppercase tracking-wider text-sm sm:text-base shadow-[4px_4px_0px_0px_#000000] hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all cursor-pointer"
         >
           <Compass className="w-5 h-5 text-white animate-spin" style={{ animationDuration: '6s' }} />
           <span>Am I Safe?</span>
@@ -254,7 +254,7 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
       </div>
 
       {/* The Umbrella Gauge Box */}
-      <div className="my-6 p-6 bg-[#FFD93D] border-4 border-black rounded-3xl text-center shadow-[6px_6px_0px_0px_#000000]">
+      <div className="my-6 p-6 bg-[#FFE5EC] border-4 border-black rounded-3xl text-center shadow-[6px_6px_0px_0px_#000000]">
         <div className="flex justify-center items-baseline gap-2 mb-1">
           <span className="text-5xl sm:text-6xl font-black text-black tracking-tight">
             {score}
@@ -266,10 +266,10 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
           <span
             className={`inline-block px-4 py-1 rounded-xl border-3 border-black shadow-[3px_3px_0px_0px_#000000] ${
               score >= 70
-                ? 'bg-[#FF6B6B] text-white animate-bounce'
+                ? 'bg-[#FF2A85] text-white animate-bounce'
                 : score >= 45
-                ? 'bg-white text-black'
-                : 'bg-[#6BCB77] text-black'
+                ? 'bg-[#FFA8BA] text-black'
+                : 'bg-white text-black'
             }`}
           >
             {weather.verdict}
@@ -281,10 +281,10 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
           <span className="bg-white px-3 py-1 rounded-full border-2 border-black shadow-[2px_2px_0px_0px_#000000]">
             Leave It (1)
           </span>
-          <span className="font-mono tracking-widest text-base sm:text-lg bg-black text-[#6BCB77] px-4 py-1.5 rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000000]">
+          <span className="font-mono tracking-widest text-base sm:text-lg bg-black text-[#FF6584] px-4 py-1.5 rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000000]">
             {asciiGauge}
           </span>
-          <span className="bg-[#FF6B6B] text-white px-3 py-1 rounded-full border-2 border-black shadow-[2px_2px_0px_0px_#000000]">
+          <span className="bg-[#FF2A85] text-white px-3 py-1 rounded-full border-2 border-black shadow-[2px_2px_0px_0px_#000000]">
             Take It (100)
           </span>
         </div>
@@ -292,24 +292,24 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
         {/* Live Forecast Pill */}
         <div className="inline-flex items-center gap-2 mt-1 px-4 py-1.5 bg-white text-black border-2 border-black rounded-full text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000000]">
           <span className="opacity-70">Forecast for {weather.selectedArea}:</span>
-          <span className="text-[#4D96FF]">{weather.selectedForecast}</span>
+          <span className="text-[#FF2A85] font-black">{weather.selectedForecast}</span>
         </div>
       </div>
 
       {/* Sassy Hot Take Box */}
-      <div className="my-6 p-5 bg-[#4D96FF] border-4 border-black rounded-3xl text-white shadow-[6px_6px_0px_0px_#000000]">
+      <div className="my-6 p-5 bg-[#FF4D94] border-4 border-black rounded-3xl text-white shadow-[6px_6px_0px_0px_#000000]">
         <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider bg-black text-[#FFD93D] px-3 py-1 rounded-full border-2 border-white shadow-[2px_2px_0px_0px_#000000]">
-            <Sparkles className="w-3.5 h-3.5 text-[#FFD93D]" />
+          <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider bg-black text-[#FFB3C6] px-3 py-1 rounded-full border-2 border-white shadow-[2px_2px_0px_0px_#000000]">
+            <Sparkles className="w-3.5 h-3.5 text-[#FFB3C6]" />
             <span>{activeHeadline}</span>
           </div>
 
           <button
             onClick={() => onVoiceSpeak(activeHotTake)}
-            className="flex items-center gap-1.5 text-xs font-black uppercase bg-white text-black px-3 py-1 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_#000000] hover:bg-yellow-200 active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer"
+            className="flex items-center gap-1.5 text-xs font-black uppercase bg-white text-black px-3 py-1 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_#000000] hover:bg-[#FFE5EC] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer"
             title="Read out hot take"
           >
-            {isSpeaking ? <VolumeX className="w-3.5 h-3.5 text-[#FF6B6B] animate-pulse" /> : <Volume2 className="w-3.5 h-3.5" />}
+            {isSpeaking ? <VolumeX className="w-3.5 h-3.5 text-[#FF2A85] animate-pulse" /> : <Volume2 className="w-3.5 h-3.5" />}
             <span>{isSpeaking ? 'Speaking...' : 'Speak'}</span>
           </button>
         </div>
@@ -320,7 +320,7 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
 
         {customTake?.excuseForBoss && (
           <div className="mt-3 text-xs sm:text-sm font-bold text-black bg-white p-3 rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
-            <span className="font-black uppercase text-[#FF6B6B]">[ Singlish Boss Excuse ]: </span>
+            <span className="font-black uppercase text-[#FF2A85]">[ Singlish Boss Excuse ]: </span>
             {customTake.excuseForBoss}
           </div>
         )}
@@ -330,13 +330,13 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 my-6">
         
         {/* Panel 1: UV Index */}
-        <div className="p-4 bg-[#FF6B6B] text-white border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000] flex flex-col justify-between">
+        <div className="p-4 bg-[#FF2A85] text-white border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000] flex flex-col justify-between">
           <div className="flex items-center justify-between font-black uppercase mb-1 text-xs">
             <span className="flex items-center gap-1">
-              <Sun className="w-4 h-4 text-[#FFD93D]" />
+              <Sun className="w-4 h-4 text-[#FFE5EC]" />
               UV Index
             </span>
-            <span className="px-2 py-0.5 bg-black text-[#FFD93D] border border-white rounded-full text-[10px]">
+            <span className="px-2 py-0.5 bg-black text-[#FFB3C6] border border-white rounded-full text-[10px]">
               {weather.uvIndex.status}
             </span>
           </div>
@@ -351,24 +351,24 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
         {/* Panel 2: Nearest Rainfall */}
         <div className="p-4 bg-white text-black border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000] flex flex-col justify-between">
           <div className="flex items-center justify-between font-black uppercase mb-1 text-xs">
-            <span className="flex items-center gap-1 text-[#4D96FF]">
+            <span className="flex items-center gap-1 text-[#FF2A85]">
               <CloudRain className="w-4 h-4" />
               Rainfall (5m)
             </span>
-            <span className="px-2 py-0.5 bg-[#4D96FF] text-white border border-black rounded-full text-[10px]">
+            <span className="px-2 py-0.5 bg-[#FF2A85] text-white border border-black rounded-full text-[10px]">
               {weather.nearestRainfall.status}
             </span>
           </div>
           <div className="text-2xl font-black my-1">
             {weather.nearestRainfall.rainfallMm.toFixed(1)} <span className="text-xs font-bold text-zinc-500">mm</span>
           </div>
-          <div className="text-[10px] font-bold bg-[#FFD93D] p-1.5 rounded-xl border border-black truncate">
+          <div className="text-[10px] font-bold bg-[#FFE5EC] p-1.5 rounded-xl border border-black truncate">
             {weather.nearestRainfall.stationName}
           </div>
         </div>
 
         {/* Panel 3: Wind Speed Telemetry */}
-        <div className="p-4 bg-[#6BCB77] text-black border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000] flex flex-col justify-between">
+        <div className="p-4 bg-[#FFA8BA] text-black border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000] flex flex-col justify-between">
           <div className="flex items-center justify-between font-black uppercase mb-1 text-xs">
             <span className="flex items-center gap-1">
               <Wind className="w-4 h-4" />
@@ -389,11 +389,11 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
         {/* Panel 4: Temperature & Humidity */}
         <div className="p-4 bg-white text-black border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000] flex flex-col justify-between">
           <div className="flex items-center justify-between font-black uppercase mb-1 text-xs">
-            <span className="flex items-center gap-1 text-[#FF6B6B]">
+            <span className="flex items-center gap-1 text-[#FF2A85]">
               <Thermometer className="w-4 h-4" />
               Air Temp &amp; RH
             </span>
-            <span className="flex items-center gap-0.5 text-[10px] font-black text-blue-600">
+            <span className="flex items-center gap-0.5 text-[10px] font-black text-[#D946EF]">
               <Droplets className="w-3 h-3" />
               {weather.humidity}%
             </span>
@@ -401,7 +401,7 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
           <div className="text-2xl font-black my-1">
             {weather.temperature.toFixed(1)} <span className="text-xs font-bold text-zinc-500">°C</span>
           </div>
-          <div className="text-[10px] font-bold bg-[#FFD93D] p-1.5 rounded-xl border border-black truncate">
+          <div className="text-[10px] font-bold bg-[#FFE5EC] p-1.5 rounded-xl border border-black truncate">
             {weather.humidity >= 85 ? 'High Tropical Humidity' : 'Comfortable'}
           </div>
         </div>
@@ -411,9 +411,9 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
       {/* Environmental & Transport Defense Strip (PSI, PM2.5, Live Taxis) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 my-4">
         {/* PSI / Air Quality */}
-        <div className="p-3 bg-zinc-50 border-2 border-black rounded-2xl flex items-center justify-between shadow-[2px_2px_0px_0px_#000000]">
+        <div className="p-3 bg-[#FFF0F3] border-2 border-black rounded-2xl flex items-center justify-between shadow-[2px_2px_0px_0px_#000000]">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-[#6BCB77] rounded-xl border border-black text-black">
+            <div className="p-2 bg-[#FF4D94] rounded-xl border border-black text-white">
               <Activity className="w-4 h-4" />
             </div>
             <div>
@@ -429,9 +429,9 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
         </div>
 
         {/* PM2.5 */}
-        <div className="p-3 bg-zinc-50 border-2 border-black rounded-2xl flex items-center justify-between shadow-[2px_2px_0px_0px_#000000]">
+        <div className="p-3 bg-[#FFF0F3] border-2 border-black rounded-2xl flex items-center justify-between shadow-[2px_2px_0px_0px_#000000]">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-[#FFD93D] rounded-xl border border-black text-black">
+            <div className="p-2 bg-[#FFA8BA] rounded-xl border border-black text-black">
               <ShieldAlert className="w-4 h-4" />
             </div>
             <div>
@@ -447,9 +447,9 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
         </div>
 
         {/* Taxi Availability */}
-        <div className="p-3 bg-zinc-50 border-2 border-black rounded-2xl flex items-center justify-between shadow-[2px_2px_0px_0px_#000000]">
+        <div className="p-3 bg-[#FFF0F3] border-2 border-black rounded-2xl flex items-center justify-between shadow-[2px_2px_0px_0px_#000000]">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-[#4D96FF] rounded-xl border border-black text-white">
+            <div className="p-2 bg-[#D946EF] rounded-xl border border-black text-white">
               <Car className="w-4 h-4" />
             </div>
             <div>
@@ -467,10 +467,10 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
 
       {/* 6-Hour Prediction Timeline Strip */}
       {hourlyForecast.length > 0 && (
-        <div className="my-6 p-4 bg-zinc-50 border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000]">
+        <div className="my-6 p-4 bg-[#FFF0F3] border-3 border-black rounded-2xl shadow-[4px_4px_0px_0px_#000000]">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center gap-1.5 text-xs font-black uppercase text-black">
-              <Clock className="w-3.5 h-3.5 text-[#4D96FF]" />
+              <Clock className="w-3.5 h-3.5 text-[#FF2A85]" />
               <span>Next 6 Hours Umbrella Risk Timeline:</span>
             </div>
             {loadingHourly && (
@@ -489,10 +489,10 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
                   <span
                     className={`inline-block px-2 py-0.5 rounded-md text-xs font-black border border-black ${
                       h.umbrellaRisk >= 70
-                        ? 'bg-[#FF6B6B] text-white'
+                        ? 'bg-[#FF2A85] text-white'
                         : h.umbrellaRisk >= 40
-                        ? 'bg-[#FFD93D] text-black'
-                        : 'bg-[#6BCB77] text-black'
+                        ? 'bg-[#FFA8BA] text-black'
+                        : 'bg-white text-black'
                     }`}
                   >
                     {h.umbrellaRisk}%
@@ -513,9 +513,9 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
           id="btn-roll-excuse"
           onClick={handleRollExcuse}
           disabled={rollingTake}
-          className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#6BCB77] hover:bg-[#5bb867] text-black border-3 border-black rounded-2xl font-black text-sm uppercase shadow-[4px_4px_0px_0px_#000000] hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 cursor-pointer"
+          className="inline-flex items-center gap-2.5 px-6 py-3.5 bg-[#FF2A85] hover:bg-[#ff1475] text-white border-3 border-black rounded-2xl font-black text-sm uppercase shadow-[4px_4px_0px_0px_#000000] hover:-translate-y-0.5 active:translate-x-1 active:translate-y-1 active:shadow-none transition-all disabled:opacity-50 cursor-pointer"
         >
-          <Sparkles className={`w-4 h-4 text-black ${rollingTake ? 'animate-spin' : ''}`} />
+          <Sparkles className={`w-4 h-4 text-white ${rollingTake ? 'animate-spin' : ''}`} />
           <span>{rollingTake ? 'Consulting AI Oracle...' : '🎲 Roll Another Excuse / Hot Take'}</span>
         </button>
       </div>

@@ -32,22 +32,22 @@ export const RadarScanner: React.FC<RadarScannerProps> = ({
   const getForecastIcon = (forecast: string) => {
     const f = forecast.toLowerCase();
     if (f.includes('thunder') || f.includes('heavy')) {
-      return <CloudRain className="w-5 h-5 text-[#FF6B6B] animate-bounce" />;
+      return <CloudRain className="w-5 h-5 text-[#FF2A85] animate-bounce" />;
     }
     if (f.includes('rain') || f.includes('shower')) {
-      return <CloudRain className="w-5 h-5 text-[#4D96FF]" />;
+      return <CloudRain className="w-5 h-5 text-[#D946EF]" />;
     }
     if (f.includes('fair') || f.includes('sunny')) {
-      return <Sun className="w-5 h-5 text-amber-500 animate-spin" style={{ animationDuration: '10s' }} />;
+      return <Sun className="w-5 h-5 text-[#FF6584] animate-spin" style={{ animationDuration: '10s' }} />;
     }
     return <Cloud className="w-5 h-5 text-zinc-600" />;
   };
 
   const getBadgeStyle = (forecast: string) => {
     const f = forecast.toLowerCase();
-    if (f.includes('thunder') || f.includes('heavy')) return 'bg-[#FF6B6B]/20 text-black border-2 border-black';
-    if (f.includes('rain') || f.includes('shower')) return 'bg-[#4D96FF]/20 text-black border-2 border-black';
-    if (f.includes('fair')) return 'bg-[#FFD93D]/30 text-black border-2 border-black';
+    if (f.includes('thunder') || f.includes('heavy')) return 'bg-[#FFE5EC] text-black border-2 border-black';
+    if (f.includes('rain') || f.includes('shower')) return 'bg-[#FFCCD5] text-black border-2 border-black';
+    if (f.includes('fair')) return 'bg-[#FFF0F3] text-black border-2 border-black';
     return 'bg-zinc-100 text-black border-2 border-black';
   };
 
@@ -57,7 +57,7 @@ export const RadarScanner: React.FC<RadarScannerProps> = ({
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-black pb-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[#6BCB77] text-black rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
+          <div className="p-3 bg-[#FF4D94] text-white rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
             <Radar className="w-6 h-6 animate-spin" style={{ animationDuration: '4s' }} />
           </div>
           <div>
@@ -80,7 +80,7 @@ export const RadarScanner: React.FC<RadarScannerProps> = ({
             className={`px-3 py-1.5 rounded-xl border-2 border-black font-black uppercase transition-all shadow-[2px_2px_0px_0px_#000000] cursor-pointer ${
               filterType === 'all'
                 ? 'bg-black text-white'
-                : 'bg-white text-black hover:bg-zinc-100'
+                : 'bg-white text-black hover:bg-[#FFE5EC]'
             }`}
           >
             All (47)
@@ -92,8 +92,8 @@ export const RadarScanner: React.FC<RadarScannerProps> = ({
             }}
             className={`px-3 py-1.5 rounded-xl border-2 border-black font-black uppercase transition-all shadow-[2px_2px_0px_0px_#000000] cursor-pointer ${
               filterType === 'rain'
-                ? 'bg-[#4D96FF] text-white'
-                : 'bg-white text-black hover:bg-zinc-100'
+                ? 'bg-[#FF2A85] text-white'
+                : 'bg-white text-black hover:bg-[#FFE5EC]'
             }`}
           >
             🌧️ Rain Zones
@@ -105,8 +105,8 @@ export const RadarScanner: React.FC<RadarScannerProps> = ({
             }}
             className={`px-3 py-1.5 rounded-xl border-2 border-black font-black uppercase transition-all shadow-[2px_2px_0px_0px_#000000] cursor-pointer ${
               filterType === 'fair'
-                ? 'bg-[#FFD93D] text-black'
-                : 'bg-white text-black hover:bg-zinc-100'
+                ? 'bg-[#FFA8BA] text-black'
+                : 'bg-white text-black hover:bg-[#FFE5EC]'
             }`}
           >
             ☀️ Clear / Dry
@@ -122,7 +122,7 @@ export const RadarScanner: React.FC<RadarScannerProps> = ({
           placeholder="Filter town (e.g. Jurong, Tampines, Orchard, Woodlands, Bishan)..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full bg-white border-3 border-black rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-black focus:outline-none focus:bg-[#FFD93D]/20 shadow-[3px_3px_0px_0px_#000000]"
+          className="w-full bg-white border-3 border-black rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-black focus:outline-none focus:bg-[#FFE5EC] shadow-[3px_3px_0px_0px_#000000]"
         />
       </div>
 
@@ -139,7 +139,7 @@ export const RadarScanner: React.FC<RadarScannerProps> = ({
               }}
               className={`p-3.5 rounded-2xl text-left flex flex-col justify-between transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-[#FF6B6B] text-white border-3 border-black shadow-[4px_4px_0px_0px_#000000] scale-[1.02]'
+                  ? 'bg-[#FF2A85] text-white border-3 border-black shadow-[4px_4px_0px_0px_#000000] scale-[1.02]'
                   : `${getBadgeStyle(town.forecast)} shadow-[2px_2px_0px_0px_#000000] hover:-translate-y-0.5`
               }`}
             >

@@ -109,13 +109,13 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FFD93D] text-black flex flex-col font-sans p-3 sm:p-6 bg-[radial-gradient(#00000015_2px,transparent_2px)] [background-size:24px_24px]">
+    <div className="min-h-screen bg-[#FFB3C6] text-black flex flex-col font-sans p-3 sm:p-6 bg-[radial-gradient(#00000015_2px,transparent_2px)] [background-size:24px_24px]">
       <div className="max-w-6xl w-full mx-auto flex flex-col gap-5 sm:gap-6">
         
         {/* Header - Vibrant Neo-Brutalist Card */}
         <header className="bg-white border-4 border-black p-4 sm:p-5 rounded-2xl sm:rounded-3xl shadow-[6px_6px_0px_0px_#000000] sm:shadow-[8px_8px_0px_0px_#000000] flex flex-wrap justify-between items-center gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[#FF6B6B] border-3 border-black rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shadow-[3px_3px_0px_0px_#000000] transform -rotate-3 hover:rotate-0 transition-transform">
+            <div className="w-12 h-12 sm:w-14 sm:h-14 bg-[#FF2A85] text-white border-3 border-black rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shadow-[3px_3px_0px_0px_#000000] transform -rotate-3 hover:rotate-0 transition-transform">
               🌂
             </div>
             <div>
@@ -134,7 +134,7 @@ export default function App() {
             {/* Live API Badge */}
             <div 
               onClick={() => { playTerminalBeep(); setActiveTab('apihub'); }}
-              className="bg-[#6BCB77] hover:bg-[#5bb867] px-3.5 py-1.5 border-2 border-black rounded-full font-black uppercase text-xs flex items-center gap-2 shadow-[2px_2px_0px_0px_#000000] cursor-pointer"
+              className="bg-[#FF4D94] hover:bg-[#ff3385] text-white px-3.5 py-1.5 border-2 border-black rounded-full font-black uppercase text-xs flex items-center gap-2 shadow-[2px_2px_0px_0px_#000000] cursor-pointer"
               title="Click to view Live API Explorer"
             >
               <span className="w-2.5 h-2.5 bg-white rounded-full animate-pulse border border-black"></span>
@@ -142,7 +142,7 @@ export default function App() {
             </div>
 
             {/* Clock Badge */}
-            <div className="bg-white px-3 py-1.5 border-2 border-black rounded-full font-black uppercase text-xs font-mono shadow-[2px_2px_0px_0px_#000000]">
+            <div className="bg-[#FFE5EC] px-3 py-1.5 border-2 border-black rounded-full font-black uppercase text-xs font-mono shadow-[2px_2px_0px_0px_#000000]">
               {currentTime || '12:00:00 SGT'}
             </div>
 
@@ -150,7 +150,7 @@ export default function App() {
             <button
               onClick={handleToggleSound}
               className={`p-2 border-2 border-black rounded-xl font-bold transition-all shadow-[2px_2px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none cursor-pointer ${
-                isMuted ? 'bg-zinc-200 text-zinc-600' : 'bg-[#4D96FF] text-white'
+                isMuted ? 'bg-zinc-200 text-zinc-600' : 'bg-[#FF2A85] text-white'
               }`}
               title={isMuted ? 'Unmute Quirky SFX' : 'Mute SFX'}
             >
@@ -159,7 +159,7 @@ export default function App() {
           </div>
         </header>
 
-        {/* Navigation Tabs - Chunky Pop Pills */}
+        {/* Navigation Tabs - Chunky Pop Pink Pills */}
         <nav className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1">
           <button
             onClick={() => {
@@ -168,8 +168,8 @@ export default function App() {
             }}
             className={`px-4 py-2.5 border-3 border-black rounded-2xl font-black uppercase text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'oracle'
-                ? 'bg-[#FF6B6B] text-white shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
-                : 'bg-white text-black hover:bg-zinc-100 shadow-[3px_3px_0px_0px_#000000]'
+                ? 'bg-[#FF2A85] text-white shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
+                : 'bg-white text-black hover:bg-[#FFE5EC] shadow-[3px_3px_0px_0px_#000000]'
             }`}
           >
             <Sparkles className="w-4 h-4" />
@@ -183,8 +183,8 @@ export default function App() {
             }}
             className={`px-4 py-2.5 border-3 border-black rounded-2xl font-black uppercase text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'shelter'
-                ? 'bg-[#4D96FF] text-white shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
-                : 'bg-white text-black hover:bg-zinc-100 shadow-[3px_3px_0px_0px_#000000]'
+                ? 'bg-[#D946EF] text-white shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
+                : 'bg-white text-black hover:bg-[#FFE5EC] shadow-[3px_3px_0px_0px_#000000]'
             }`}
           >
             <Footprints className="w-4 h-4" />
@@ -198,8 +198,8 @@ export default function App() {
             }}
             className={`px-4 py-2.5 border-3 border-black rounded-2xl font-black uppercase text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'radar'
-                ? 'bg-[#6BCB77] text-black shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
-                : 'bg-white text-black hover:bg-zinc-100 shadow-[3px_3px_0px_0px_#000000]'
+                ? 'bg-[#FF6584] text-white shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
+                : 'bg-white text-black hover:bg-[#FFE5EC] shadow-[3px_3px_0px_0px_#000000]'
             }`}
           >
             <Radar className="w-4 h-4" />
@@ -213,8 +213,8 @@ export default function App() {
             }}
             className={`px-4 py-2.5 border-3 border-black rounded-2xl font-black uppercase text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'notifications'
-                ? 'bg-[#FFD93D] text-black shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
-                : 'bg-white text-black hover:bg-zinc-100 shadow-[3px_3px_0px_0px_#000000]'
+                ? 'bg-[#FFA8BA] text-black shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
+                : 'bg-white text-black hover:bg-[#FFE5EC] shadow-[3px_3px_0px_0px_#000000]'
             }`}
           >
             <BellRing className="w-4 h-4" />
@@ -228,8 +228,8 @@ export default function App() {
             }}
             className={`px-4 py-2.5 border-3 border-black rounded-2xl font-black uppercase text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'gear'
-                ? 'bg-[#FF6B6B] text-white shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
-                : 'bg-white text-black hover:bg-zinc-100 shadow-[3px_3px_0px_0px_#000000]'
+                ? 'bg-[#FB7185] text-white shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
+                : 'bg-white text-black hover:bg-[#FFE5EC] shadow-[3px_3px_0px_0px_#000000]'
             }`}
           >
             <PackageCheck className="w-4 h-4" />
@@ -243,18 +243,18 @@ export default function App() {
             }}
             className={`px-4 py-2.5 border-3 border-black rounded-2xl font-black uppercase text-xs sm:text-sm flex items-center gap-2 transition-all cursor-pointer whitespace-nowrap ${
               activeTab === 'apihub'
-                ? 'bg-black text-[#6BCB77] shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
-                : 'bg-white text-black hover:bg-zinc-100 shadow-[3px_3px_0px_0px_#000000]'
+                ? 'bg-black text-[#FF70A6] shadow-[4px_4px_0px_0px_#000000] -translate-y-0.5'
+                : 'bg-white text-black hover:bg-[#FFE5EC] shadow-[3px_3px_0px_0px_#000000]'
             }`}
           >
-            <Database className="w-4 h-4 text-[#6BCB77]" />
+            <Database className="w-4 h-4 text-[#FF70A6]" />
             <span>Live API Hub</span>
           </button>
         </nav>
 
         {/* Error Notification */}
         {error && (
-          <div className="bg-[#FF6B6B] border-4 border-black p-3.5 rounded-2xl text-white font-bold flex items-center gap-3 shadow-[4px_4px_0px_0px_#000000]">
+          <div className="bg-[#FF2A85] border-4 border-black p-3.5 rounded-2xl text-white font-bold flex items-center gap-3 shadow-[4px_4px_0px_0px_#000000]">
             <Info className="w-5 h-5 shrink-0" />
             <span className="text-xs sm:text-sm">{error}</span>
           </div>
@@ -273,17 +273,17 @@ export default function App() {
                 isSpeaking={isSpeaking}
               />
 
-              {/* 4-Column Vibrant Feature Cards */}
+              {/* 4-Column Vibrant Pink Feature Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-5xl mx-auto">
                 
                 {/* Card 1: Sheltered Routes */}
                 <div 
                   onClick={() => { playTerminalBeep(); setActiveTab('shelter'); }}
-                  className="bg-[#4D96FF] border-4 border-black rounded-3xl p-5 shadow-[6px_6px_0px_0px_#000000] hover:-translate-y-1 transition-all cursor-pointer text-white flex flex-col justify-between"
+                  className="bg-[#D946EF] border-4 border-black rounded-3xl p-5 shadow-[6px_6px_0px_0px_#000000] hover:-translate-y-1 transition-all cursor-pointer text-white flex flex-col justify-between"
                 >
                   <div>
                     <div className="w-10 h-10 bg-white border-2 border-black rounded-xl flex items-center justify-center text-black mb-3 shadow-[2px_2px_0px_0px_#000000]">
-                      <Footprints className="w-5 h-5 text-[#4D96FF]" />
+                      <Footprints className="w-5 h-5 text-[#D946EF]" />
                     </div>
                     <h3 className="font-black text-base uppercase tracking-tight mb-1">
                       Sheltered Routes
@@ -301,20 +301,20 @@ export default function App() {
                 {/* Card 2: 47 Towns Radar */}
                 <div 
                   onClick={() => { playTerminalBeep(); setActiveTab('radar'); }}
-                  className="bg-[#6BCB77] border-4 border-black rounded-3xl p-5 shadow-[6px_6px_0px_0px_#000000] hover:-translate-y-1 transition-all cursor-pointer text-black flex flex-col justify-between"
+                  className="bg-[#FF529A] border-4 border-black rounded-3xl p-5 shadow-[6px_6px_0px_0px_#000000] hover:-translate-y-1 transition-all cursor-pointer text-white flex flex-col justify-between"
                 >
                   <div>
                     <div className="w-10 h-10 bg-white border-2 border-black rounded-xl flex items-center justify-center text-black mb-3 shadow-[2px_2px_0px_0px_#000000]">
-                      <Radar className="w-5 h-5 text-[#6BCB77]" />
+                      <Radar className="w-5 h-5 text-[#FF2A85]" />
                     </div>
                     <h3 className="font-black text-base uppercase tracking-tight mb-1">
                       47 Towns Radar
                     </h3>
-                    <p className="text-xs font-bold text-black/80 leading-snug">
+                    <p className="text-xs font-bold text-white/90 leading-snug">
                       Real-time live scan from NEA weather stations across Jurong, Tampines, Orchard &amp; more.
                     </p>
                   </div>
-                  <div className="mt-4 pt-3 border-t-2 border-black/20 flex justify-between items-center text-xs font-black uppercase">
+                  <div className="mt-4 pt-3 border-t-2 border-white/30 flex justify-between items-center text-xs font-black uppercase">
                     <span>Inspect Rain Zones</span>
                     <span>➔</span>
                   </div>
@@ -326,14 +326,14 @@ export default function App() {
                   className="bg-white border-4 border-black rounded-3xl p-5 shadow-[6px_6px_0px_0px_#000000] hover:-translate-y-1 transition-all cursor-pointer text-black flex flex-col justify-between"
                 >
                   <div>
-                    <div className="w-10 h-10 bg-[#FFD93D] border-2 border-black rounded-xl flex items-center justify-center text-black mb-3 shadow-[2px_2px_0px_0px_#000000]">
-                      <BellRing className="w-5 h-5" />
+                    <div className="w-10 h-10 bg-[#FFB3C6] border-2 border-black rounded-xl flex items-center justify-center text-black mb-3 shadow-[2px_2px_0px_0px_#000000]">
+                      <BellRing className="w-5 h-5 text-[#FF2A85]" />
                     </div>
                     <h3 className="font-black text-base uppercase tracking-tight mb-1">
                       Push Notifier (&gt;50%)
                     </h3>
                     <p className="text-xs font-bold text-black/70 leading-snug">
-                      Slide 4 pitch: Auto-buzz device when umbrella risk exceeds 50%.
+                      Auto-dispatch mobile alerts when umbrella risk exceeds 50%.
                     </p>
                   </div>
                   <div className="mt-4 pt-3 border-t-2 border-black/20 flex justify-between items-center text-xs font-black uppercase">
@@ -348,17 +348,17 @@ export default function App() {
                   className="bg-black border-4 border-black rounded-3xl p-5 shadow-[6px_6px_0px_0px_#000000] hover:-translate-y-1 transition-all cursor-pointer text-white flex flex-col justify-between"
                 >
                   <div>
-                    <div className="w-10 h-10 bg-[#6BCB77] border-2 border-white rounded-xl flex items-center justify-center text-black mb-3 shadow-[2px_2px_0px_0px_#ffffff]">
+                    <div className="w-10 h-10 bg-[#FF4D94] border-2 border-white rounded-xl flex items-center justify-center text-white mb-3 shadow-[2px_2px_0px_0px_#ffffff]">
                       <Code className="w-5 h-5" />
                     </div>
-                    <h3 className="font-black text-base uppercase tracking-tight mb-1 text-[#6BCB77]">
+                    <h3 className="font-black text-base uppercase tracking-tight mb-1 text-[#FF70A6]">
                       Live API Hub
                     </h3>
                     <p className="text-xs font-bold text-zinc-300 leading-snug">
                       Inspect and trigger all 13 data.gov.sg &amp; Gemini weather endpoints live.
                     </p>
                   </div>
-                  <div className="mt-4 pt-3 border-t-2 border-zinc-700 flex justify-between items-center text-xs font-black uppercase text-[#FFD93D]">
+                  <div className="mt-4 pt-3 border-t-2 border-zinc-700 flex justify-between items-center text-xs font-black uppercase text-[#FFB3C6]">
                     <span>Inspect Endpoints</span>
                     <span>➔</span>
                   </div>
@@ -396,10 +396,10 @@ export default function App() {
         {/* Footer - Vibrant Neo-Brutalist Pill */}
         <footer className="bg-white border-4 border-black p-4 rounded-2xl shadow-[6px_6px_0px_0px_#000000] flex flex-wrap justify-between items-center gap-2 text-xs font-black uppercase tracking-wider">
           <div className="flex items-center gap-2">
-            <span className="w-3 h-3 bg-[#6BCB77] border border-black rounded-full"></span>
+            <span className="w-3 h-3 bg-[#FF4D94] border border-black rounded-full"></span>
             <span>Data: data.gov.sg &amp; NEA Singapore Real-Time APIs (d_6580738c, d_1b676cd1)</span>
           </div>
-          <div className="bg-[#FFD93D] px-3 py-1 border-2 border-black rounded-full font-bold">
+          <div className="bg-[#FFA8BA] px-3 py-1 border-2 border-black rounded-full font-bold">
             Singapore Weather Survival Oracle 🇸🇬 🌂
           </div>
         </footer>

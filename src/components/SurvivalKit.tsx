@@ -77,7 +77,7 @@ export const SurvivalKit: React.FC<SurvivalKitProps> = ({ uvValue, umbrellaScore
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-black pb-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[#FF6B6B] text-white rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
+          <div className="p-3 bg-[#FF2A85] text-white rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
             <PackageCheck className="w-6 h-6" />
           </div>
           <div>
@@ -90,7 +90,7 @@ export const SurvivalKit: React.FC<SurvivalKitProps> = ({ uvValue, umbrellaScore
           </div>
         </div>
 
-        <div className="bg-[#FFD93D] px-4 py-1.5 border-2 border-black rounded-full text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000000]">
+        <div className="bg-[#FFA8BA] px-4 py-1.5 border-2 border-black rounded-full text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000000]">
           {packedCount}/{items.length} Packed Ready
         </div>
       </div>
@@ -102,7 +102,7 @@ export const SurvivalKit: React.FC<SurvivalKitProps> = ({ uvValue, umbrellaScore
             onClick={() => togglePacked(item.id)}
             className={`p-4 rounded-2xl border-3 border-black transition-all cursor-pointer flex items-start justify-between gap-3 shadow-[3px_3px_0px_0px_#000000] hover:-translate-y-0.5 active:translate-x-0.5 active:translate-y-0.5 active:shadow-none ${
               item.isPacked
-                ? 'bg-[#6BCB77]/25'
+                ? 'bg-[#FFE5EC]'
                 : 'bg-white hover:bg-zinc-50'
             }`}
           >
@@ -119,14 +119,14 @@ export const SurvivalKit: React.FC<SurvivalKitProps> = ({ uvValue, umbrellaScore
                   <span
                     className={`text-[10px] px-2 py-0.5 rounded-full font-black uppercase border border-black ${
                       item.urgency === 'Crucial'
-                        ? 'bg-[#FF6B6B] text-white'
-                        : 'bg-[#FFD93D] text-black'
+                        ? 'bg-[#FF2A85] text-white'
+                        : 'bg-[#FFA8BA] text-black'
                     }`}
                   >
                     {item.urgency}
                   </span>
                   {item.isPacked && (
-                    <span className="text-[10px] font-black uppercase text-emerald-800">
+                    <span className="text-[10px] font-black uppercase text-[#FF2A85]">
                       ✓ In Backpack
                     </span>
                   )}
@@ -137,7 +137,7 @@ export const SurvivalKit: React.FC<SurvivalKitProps> = ({ uvValue, umbrellaScore
             <div
               className={`w-7 h-7 rounded-xl border-2 border-black flex items-center justify-center shrink-0 transition-colors shadow-[1px_1px_0px_0px_#000000] ${
                 item.isPacked
-                  ? 'bg-[#6BCB77] text-black'
+                  ? 'bg-[#FF2A85] text-white'
                   : 'bg-white text-transparent'
               }`}
             >

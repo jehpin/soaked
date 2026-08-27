@@ -59,7 +59,7 @@ export const NotificationSimulator: React.FC<NotificationSimulatorProps> = ({
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-black pb-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[#FFD93D] text-black rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
+          <div className="p-3 bg-[#FF4D94] text-white rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
             <BellRing className="w-6 h-6" />
           </div>
           <div>
@@ -67,7 +67,7 @@ export const NotificationSimulator: React.FC<NotificationSimulatorProps> = ({
               Automatic Push Notifier
             </h3>
             <p className="text-xs sm:text-sm font-bold text-black/70 uppercase">
-              Slide 4 Rule: Auto-dispatch emergency alerts when Umbrella Need &gt; 50%.
+              Auto-dispatch emergency alerts when Umbrella Need &gt; 50%.
             </p>
           </div>
         </div>
@@ -80,7 +80,7 @@ export const NotificationSimulator: React.FC<NotificationSimulatorProps> = ({
             }}
             className={`text-xs sm:text-sm px-4 py-2 rounded-2xl border-3 border-black font-black uppercase flex items-center gap-2 cursor-pointer transition-all shadow-[3px_3px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 active:shadow-none ${
               notificationEnabled
-                ? 'bg-[#6BCB77] text-black'
+                ? 'bg-[#FF2A85] text-white'
                 : 'bg-zinc-200 text-zinc-600'
             }`}
           >
@@ -92,10 +92,10 @@ export const NotificationSimulator: React.FC<NotificationSimulatorProps> = ({
 
       {/* Threshold Slider & Status */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-        <div className="p-5 bg-[#FFD93D] rounded-3xl border-4 border-black shadow-[4px_4px_0px_0px_#000000]">
+        <div className="p-5 bg-[#FFE5EC] rounded-3xl border-4 border-black shadow-[4px_4px_0px_0px_#000000]">
           <div className="flex justify-between items-center mb-3">
             <span className="text-xs font-black uppercase text-black">Alert Trigger Threshold:</span>
-            <span className="text-sm font-black bg-black text-[#FFD93D] px-3 py-1 rounded-full border border-black">
+            <span className="text-sm font-black bg-black text-[#FFB3C6] px-3 py-1 rounded-full border border-black">
               {threshold}% Chance
             </span>
           </div>
@@ -106,7 +106,7 @@ export const NotificationSimulator: React.FC<NotificationSimulatorProps> = ({
             step="5"
             value={threshold}
             onChange={(e) => setThreshold(Number(e.target.value))}
-            className="w-full accent-black h-3 bg-white border-2 border-black rounded-lg cursor-pointer"
+            className="w-full accent-[#FF2A85] h-3 bg-white border-2 border-black rounded-lg cursor-pointer"
           />
           <div className="flex justify-between text-[11px] font-black uppercase text-black/80 mt-2">
             <span>20% (Paranoid)</span>
@@ -115,12 +115,12 @@ export const NotificationSimulator: React.FC<NotificationSimulatorProps> = ({
           </div>
         </div>
 
-        <div className="p-5 bg-[#4D96FF] text-white rounded-3xl border-4 border-black shadow-[4px_4px_0px_0px_#000000] flex flex-col justify-between">
+        <div className="p-5 bg-[#D946EF] text-white rounded-3xl border-4 border-black shadow-[4px_4px_0px_0px_#000000] flex flex-col justify-between">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-black uppercase">Current Threat vs Threshold:</span>
             <span
               className={`text-xs font-black uppercase px-3 py-1 rounded-full border-2 border-black ${
-                isTriggered ? 'bg-[#FF6B6B] text-white' : 'bg-[#6BCB77] text-black'
+                isTriggered ? 'bg-[#FF2A85] text-white' : 'bg-white text-black'
               }`}
             >
               {isTriggered ? 'Criteria Met (>50%)' : 'Below Threshold'}
@@ -139,7 +139,7 @@ export const NotificationSimulator: React.FC<NotificationSimulatorProps> = ({
         <button
           id="btn-trigger-notification-test"
           onClick={triggerTestPush}
-          className="flex-1 py-3.5 bg-[#FF6B6B] hover:bg-[#ff5252] active:translate-x-1 active:translate-y-1 active:shadow-none text-white font-black uppercase rounded-2xl border-3 border-black transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_#000000] cursor-pointer text-xs sm:text-sm"
+          className="flex-1 py-3.5 bg-[#FF2A85] hover:bg-[#ff1475] active:translate-x-1 active:translate-y-1 active:shadow-none text-white font-black uppercase rounded-2xl border-3 border-black transition-all flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_#000000] cursor-pointer text-xs sm:text-sm"
         >
           <Sparkles className="w-5 h-5 text-white" />
           <span>Simulate Instant Weather Push Alert</span>
@@ -148,7 +148,7 @@ export const NotificationSimulator: React.FC<NotificationSimulatorProps> = ({
         {browserPermission !== 'granted' && (
           <button
             onClick={requestBrowserPermission}
-            className="px-5 py-3.5 bg-[#FFD93D] hover:bg-yellow-300 text-black text-xs sm:text-sm rounded-2xl border-3 border-black font-black uppercase shadow-[3px_3px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer"
+            className="px-5 py-3.5 bg-[#FFA8BA] hover:bg-[#ff94aa] text-black text-xs sm:text-sm rounded-2xl border-3 border-black font-black uppercase shadow-[3px_3px_0px_0px_#000000] active:translate-x-0.5 active:translate-y-0.5 transition-all cursor-pointer"
           >
             <span>Enable System Notifications</span>
           </button>
@@ -157,7 +157,7 @@ export const NotificationSimulator: React.FC<NotificationSimulatorProps> = ({
 
       {/* Last Notification Banner */}
       {lastNotification && (
-        <div className="mt-5 p-4 bg-[#FF6B6B] text-white border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_#000000] flex items-start gap-3 animate-bounce">
+        <div className="mt-5 p-4 bg-[#FF2A85] text-white border-4 border-black rounded-3xl shadow-[6px_6px_0px_0px_#000000] flex items-start gap-3 animate-bounce">
           <AlertOctagon className="w-6 h-6 text-white shrink-0 mt-0.5" />
           <div className="text-xs sm:text-sm">
             <div className="font-black uppercase tracking-wider mb-1">

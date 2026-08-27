@@ -313,7 +313,7 @@ export const ApiHub: React.FC = () => {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b-4 border-black pb-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[#6BCB77] text-black rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
+          <div className="p-3 bg-[#FF2A85] text-white rounded-2xl border-3 border-black shadow-[3px_3px_0px_0px_#000000]">
             <Database className="w-6 h-6" />
           </div>
           <div>
@@ -327,10 +327,10 @@ export const ApiHub: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="bg-[#4D96FF] text-white px-3 py-1 border-2 border-black rounded-full text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000000]">
+          <span className="bg-[#FF4D94] text-white px-3 py-1 border-2 border-black rounded-full text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000000]">
             10 v2 Weather
           </span>
-          <span className="bg-[#FFD93D] text-black px-3 py-1 border-2 border-black rounded-full text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000000]">
+          <span className="bg-[#FFA8BA] text-black px-3 py-1 border-2 border-black rounded-full text-xs font-black uppercase shadow-[2px_2px_0px_0px_#000000]">
             2 v1 Transport
           </span>
         </div>
@@ -357,7 +357,7 @@ export const ApiHub: React.FC = () => {
               className={`px-3 py-1.5 rounded-xl text-xs font-black uppercase border-2 border-black flex items-center gap-1.5 transition-all cursor-pointer shadow-[2px_2px_0px_0px_#000000] ${
                 isActive
                   ? 'bg-black text-white translate-y-0.5 shadow-none'
-                  : 'bg-white hover:bg-zinc-100 text-black'
+                  : 'bg-white hover:bg-[#FFE5EC] text-black'
               }`}
             >
               <Icon className="w-3.5 h-3.5" />
@@ -385,15 +385,15 @@ export const ApiHub: React.FC = () => {
                 onClick={() => handleSelectApi(api)}
                 className={`w-full text-left p-3 rounded-2xl border-3 border-black transition-all cursor-pointer flex flex-col gap-1 shadow-[2px_2px_0px_0px_#000000] ${
                   isSelected
-                    ? 'bg-[#FF6B6B] text-white shadow-[4px_4px_0px_0px_#000000] scale-[1.01]'
-                    : 'bg-white hover:bg-zinc-100 text-black'
+                    ? 'bg-[#FF2A85] text-white shadow-[4px_4px_0px_0px_#000000] scale-[1.01]'
+                    : 'bg-white hover:bg-[#FFE5EC] text-black'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-[10px] font-black px-1.5 py-0.5 rounded border border-black uppercase ${
-                        api.method === 'POST' ? 'bg-[#FFD93D] text-black' : 'bg-[#6BCB77] text-black'
+                        api.method === 'POST' ? 'bg-[#FFA8BA] text-black' : 'bg-[#FFE5EC] text-black'
                       }`}
                     >
                       {api.method}
@@ -422,20 +422,20 @@ export const ApiHub: React.FC = () => {
 
         {/* Right Column: Interactive Tester & Payload Inspector */}
         <div className="lg:col-span-7 flex flex-col gap-4">
-          <div className="bg-[#F8F9FA] border-3 border-black rounded-2xl p-4 sm:p-5 shadow-[4px_4px_0px_0px_#000000] flex flex-col gap-4">
+          <div className="bg-[#FFF0F3] border-3 border-black rounded-2xl p-4 sm:p-5 shadow-[4px_4px_0px_0px_#000000] flex flex-col gap-4">
             
             {/* Header info */}
             <div>
               <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="text-[11px] font-black uppercase px-2 py-0.5 bg-[#4D96FF] text-white rounded border border-black">
+                <span className="text-[11px] font-black uppercase px-2 py-0.5 bg-[#FF4D94] text-white rounded border border-black">
                   {selectedApi.version} Host Endpoint
                 </span>
                 {statusCode && (
                   <span
                     className={`text-xs font-mono font-black px-2 py-0.5 rounded border-2 border-black flex items-center gap-1 ${
                       statusCode >= 200 && statusCode < 300
-                        ? 'bg-[#6BCB77] text-black'
-                        : 'bg-[#FF6B6B] text-white'
+                        ? 'bg-[#FF2A85] text-white'
+                        : 'bg-black text-[#FFB3C6]'
                     }`}
                   >
                     <CheckCircle className="w-3.5 h-3.5" /> {statusCode} OK ({responseTime}ms)
@@ -453,14 +453,14 @@ export const ApiHub: React.FC = () => {
                 <span>Official Live Source URL:</span>
                 <button
                   onClick={handleCopyGovUrl}
-                  className="flex items-center gap-1 text-[10px] font-black bg-white hover:bg-zinc-100 px-2 py-0.5 rounded border border-black cursor-pointer shadow-[1px_1px_0px_0px_#000000]"
+                  className="flex items-center gap-1 text-[10px] font-black bg-white hover:bg-[#FFE5EC] px-2 py-0.5 rounded border border-black cursor-pointer shadow-[1px_1px_0px_0px_#000000]"
                 >
-                  {copiedUrl ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
+                  {copiedUrl ? <Check className="w-3 h-3 text-[#FF2A85]" /> : <Copy className="w-3 h-3" />}
                   {copiedUrl ? 'Copied' : 'Copy URL'}
                 </button>
               </div>
-              <div className="flex items-center gap-2 bg-zinc-900 text-green-400 font-mono text-xs p-2.5 rounded-xl border-2 border-black overflow-x-auto">
-                <span className="text-yellow-400 font-bold">{selectedApi.method}</span>
+              <div className="flex items-center gap-2 bg-zinc-900 text-pink-300 font-mono text-xs p-2.5 rounded-xl border-2 border-black overflow-x-auto">
+                <span className="text-[#FFB3C6] font-bold">{selectedApi.method}</span>
                 <span className="truncate">{selectedApi.govUrl}</span>
                 <a
                   href={selectedApi.govUrl}
@@ -476,7 +476,7 @@ export const ApiHub: React.FC = () => {
 
             {/* App Internal Route */}
             <div className="flex items-center gap-2 bg-white font-mono text-xs px-3 py-2 rounded-xl border-2 border-black text-black/80">
-              <span className="text-[10px] font-black bg-zinc-200 px-1.5 py-0.5 rounded uppercase">App Proxy</span>
+              <span className="text-[10px] font-black bg-[#FFE5EC] px-1.5 py-0.5 rounded uppercase">App Proxy</span>
               <span className="font-bold">{selectedApi.endpoint}</span>
             </div>
 
@@ -490,7 +490,7 @@ export const ApiHub: React.FC = () => {
                   value={customRequestBody}
                   onChange={(e) => setCustomRequestBody(e.target.value)}
                   rows={4}
-                  className="w-full bg-zinc-900 text-yellow-300 font-mono text-xs p-3 rounded-xl border-2 border-black focus:outline-none focus:ring-2 focus:ring-black resize-none"
+                  className="w-full bg-zinc-900 text-pink-200 font-mono text-xs p-3 rounded-xl border-2 border-black focus:outline-none focus:ring-2 focus:ring-black resize-none"
                 />
               </div>
             )}
@@ -499,7 +499,7 @@ export const ApiHub: React.FC = () => {
             <button
               onClick={handleExecuteRequest}
               disabled={loading}
-              className="w-full py-3 bg-[#FFD93D] hover:bg-[#ffcd1a] active:translate-y-1 font-black text-sm uppercase tracking-wider rounded-xl border-3 border-black shadow-[4px_4px_0px_0px_#000000] flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+              className="w-full py-3 bg-[#FF2A85] hover:bg-[#ff1475] active:translate-y-1 font-black text-sm uppercase tracking-wider rounded-xl border-3 border-black text-white shadow-[4px_4px_0px_0px_#000000] flex items-center justify-center gap-2 cursor-pointer transition-all disabled:opacity-50"
             >
               {loading ? (
                 <>
@@ -517,7 +517,7 @@ export const ApiHub: React.FC = () => {
           <div className="bg-zinc-950 border-3 border-black rounded-2xl p-4 shadow-[4px_4px_0px_0px_#000000] flex flex-col gap-2">
             <div className="flex items-center justify-between border-b border-zinc-800 pb-2">
               <div className="flex items-center gap-2 text-zinc-300 font-mono text-xs font-bold">
-                <Terminal className="w-4 h-4 text-[#6BCB77]" />
+                <Terminal className="w-4 h-4 text-[#FF4D94]" />
                 <span>Response Payload (JSON)</span>
               </div>
               {responseData && (
@@ -533,7 +533,7 @@ export const ApiHub: React.FC = () => {
                   Connecting to {selectedApi.version} live endpoint...
                 </div>
               ) : responseData ? (
-                <pre className="text-green-400 whitespace-pre-wrap word-break">
+                <pre className="text-pink-300 whitespace-pre-wrap word-break">
                   {JSON.stringify(responseData, null, 2)}
                 </pre>
               ) : (
