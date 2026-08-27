@@ -6,15 +6,22 @@ import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
-// Initialize Gemini API client
-const ai = new GoogleGenAI({
-  apiKey: process.env.GEMINI_API_KEY || "",
-  httpOptions: {
-    headers: {
-      "User-Agent": "aistudio-build",
-    },
-  },
-});
+// Lazy Gemini API Client Initialization
+let geminiClient: GoogleGenAI | null = null;
+function getGeminiClient(): GoogleGenAI | null {
+  if (!process.env.GEMINI_API_KEY) return null;
+  if (!geminiClient) {
+    geminiClient = new GoogleGenAI({
+      apiKey: process.env.GEMINI_API_KEY,
+      httpOptions: {
+        headers: {
+          "User-Agent": "aistudio-build",
+        },
+      },
+    });
+  }
+  return geminiClient;
+}
 
 interface CacheItem<T> {
   data: T;
@@ -22,36 +29,42 @@ interface CacheItem<T> {
 }
 
 const cache: Record<string, CacheItem<any>> = {};
-const CACHE_TTL_MS = 60 * 1000; // 1 minute cache for data.gov.sg
+const CACHE_TTL_MS = 60 * 1000; // 1 minute cache
 
-async function fetchWithCache<T>(key: string, url: string): Promise<T | null> {
+async function fetchWithCache<T>(key: string, url: string, fallbackData?: T): Promise<T | null> {
   const cached = cache[key];
   if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
     return cached.data as T;
   }
   try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3500);
+
     const res = await fetch(url, {
+      signal: controller.signal,
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; UmbrellaOracleApp/1.0)",
         Accept: "application/json",
       },
     });
+    clearTimeout(timeoutId);
+
     if (!res.ok) {
       console.warn(`[WeatherAPI] ${url} returned status ${res.status}`);
       if (cached) return cached.data as T;
-      return null;
+      return fallbackData || null;
     }
     const data = await res.json();
     cache[key] = { data, timestamp: Date.now() };
     return data as T;
   } catch (err) {
-    console.error(`[WeatherAPI Error] Failed to fetch ${url}:`, err);
+    console.warn(`[WeatherAPI Warning] Failed to fetch ${url}, using cached/fallback:`, err);
     if (cached) return cached.data as T;
-    return null;
+    return fallbackData || null;
   }
 }
 
-// Fallback SG Towns data if offline or rate limited
+// Fallback SG Towns data
 const FALLBACK_TOWNS = [
   { area: "Jurong West", forecast: "Moderate Rain" },
   { area: "Clementi", forecast: "Light Rain" },
@@ -81,15 +94,15 @@ const FALLBACK_TOWNS = [
 ];
 
 function calculateUmbrellaScore(
-  forecast: string,
-  rainfallMm: number,
-  uvIndex: number,
-  windSpeedKnots: number,
+  forecast: string = "Cloudy",
+  rainfallMm: number = 0,
+  uvIndex: number = 6,
+  windSpeedKnots: number = 8,
   humidity: number = 75
 ) {
-  let score = 20; // baseline cautious Singaporean score
+  let score = 20;
 
-  const f = forecast.toLowerCase();
+  const f = String(forecast || "").toLowerCase();
   if (f.includes("heavy thundery") || f.includes("heavy rain") || f.includes("torrential")) {
     score += 65;
   } else if (f.includes("thundery") || f.includes("thunder")) {
@@ -149,8 +162,13 @@ async function startServer() {
 
   app.use(express.json());
 
+  // Health check
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", time: new Date().toISOString() });
+  });
+
   // ==========================================
-  // 1. API: 2-Hour Weather Forecast (data.gov.sg d_6580738cdd7db79374ed3152159fbd69)
+  // 1. API: 2-Hour Weather Forecast
   // ==========================================
   app.get("/api/weather/2hr-forecast", async (req, res) => {
     try {
@@ -158,29 +176,30 @@ async function startServer() {
         "forecast-2hr",
         "https://api.data.gov.sg/v1/environment/2-hour-weather-forecast"
       );
-      if (data) {
+      if (data && data.items) {
         return res.json({
           success: true,
           datasetId: "d_6580738cdd7db79374ed3152159fbd69",
           apiEndpoint: "https://api.data.gov.sg/v1/environment/2-hour-weather-forecast",
           items: data.items,
-          area_metadata: data.area_metadata,
+          area_metadata: data.area_metadata || [],
           valid_period: data.items?.[0]?.valid_period,
           forecasts: data.items?.[0]?.forecasts || FALLBACK_TOWNS,
         });
       }
-      res.json({
-        success: true,
-        source: "fallback",
-        forecasts: FALLBACK_TOWNS,
-      });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
+    } catch (e) {
+      console.warn("2hr-forecast fallback triggered", e);
     }
+    res.json({
+      success: true,
+      source: "fallback",
+      forecasts: FALLBACK_TOWNS,
+      area_metadata: [],
+    });
   });
 
   // ==========================================
-  // 2. API: Rainfall Readings (data.gov.sg d_1b676cd174a9af4704fdb3f9aa58ff5e)
+  // 2. API: Rainfall Readings
   // ==========================================
   app.get("/api/weather/rainfall", async (req, res) => {
     try {
@@ -188,7 +207,7 @@ async function startServer() {
         "rainfall",
         "https://api.data.gov.sg/v1/environment/rainfall"
       );
-      if (data) {
+      if (data && data.items) {
         return res.json({
           success: true,
           datasetId: "d_1b676cd174a9af4704fdb3f9aa58ff5e",
@@ -196,18 +215,19 @@ async function startServer() {
           metadata: data.metadata,
           stations: data.metadata?.stations || [],
           readings: data.items?.[0]?.readings || [],
-          timestamp: data.items?.[0]?.timestamp,
+          timestamp: data.items?.[0]?.timestamp || new Date().toISOString(),
         });
       }
-      res.json({
-        success: true,
-        source: "fallback",
-        stations: [],
-        readings: [{ station_id: "S109", value: 0.0 }],
-      });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
+    } catch (e) {
+      console.warn("rainfall fallback triggered", e);
     }
+    res.json({
+      success: true,
+      source: "fallback",
+      stations: [{ id: "S109", name: "Clementi Road", location: { latitude: 1.32, longitude: 103.77 } }],
+      readings: [{ station_id: "S109", value: 0.0 }],
+      timestamp: new Date().toISOString(),
+    });
   });
 
   // ==========================================
@@ -230,19 +250,18 @@ async function startServer() {
           records,
         });
       }
-      // Fallback
-      const hour = new Date().getHours();
-      const mockUV = hour >= 11 && hour <= 15 ? 9.0 : hour >= 8 && hour <= 17 ? 5.5 : 0;
-      res.json({
-        success: true,
-        source: "fallback",
-        latestUV: mockUV,
-        timestamp: new Date().toISOString(),
-        records: [{ value: mockUV, timestamp: new Date().toISOString() }],
-      });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
+    } catch (e) {
+      console.warn("uv-index fallback triggered", e);
     }
+    const hour = new Date().getHours();
+    const mockUV = hour >= 11 && hour <= 15 ? 9.0 : hour >= 8 && hour <= 17 ? 5.5 : 0;
+    res.json({
+      success: true,
+      source: "fallback",
+      latestUV: mockUV,
+      timestamp: new Date().toISOString(),
+      records: [{ value: mockUV, timestamp: new Date().toISOString() }],
+    });
   });
 
   // ==========================================
@@ -254,7 +273,7 @@ async function startServer() {
         "temperature",
         "https://api.data.gov.sg/v1/environment/air-temperature"
       );
-      if (data) {
+      if (data && data.items) {
         return res.json({
           success: true,
           apiEndpoint: "https://api.data.gov.sg/v1/environment/air-temperature",
@@ -263,14 +282,15 @@ async function startServer() {
           timestamp: data.items?.[0]?.timestamp,
         });
       }
-      res.json({
-        success: true,
-        source: "fallback",
-        readings: [{ station_id: "S109", value: 31.5 }],
-      });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
+    } catch (e) {
+      console.warn("temperature fallback triggered", e);
     }
+    res.json({
+      success: true,
+      source: "fallback",
+      readings: [{ station_id: "S109", value: 31.5 }],
+      timestamp: new Date().toISOString(),
+    });
   });
 
   // ==========================================
@@ -282,7 +302,7 @@ async function startServer() {
         "humidity",
         "https://api.data.gov.sg/v1/environment/relative-humidity"
       );
-      if (data) {
+      if (data && data.items) {
         return res.json({
           success: true,
           apiEndpoint: "https://api.data.gov.sg/v1/environment/relative-humidity",
@@ -291,14 +311,15 @@ async function startServer() {
           timestamp: data.items?.[0]?.timestamp,
         });
       }
-      res.json({
-        success: true,
-        source: "fallback",
-        readings: [{ station_id: "S109", value: 80 }],
-      });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
+    } catch (e) {
+      console.warn("humidity fallback triggered", e);
     }
+    res.json({
+      success: true,
+      source: "fallback",
+      readings: [{ station_id: "S109", value: 80 }],
+      timestamp: new Date().toISOString(),
+    });
   });
 
   // ==========================================
@@ -317,13 +338,20 @@ async function startServer() {
       return res.json({
         success: true,
         apiEndpoint: "https://api.data.gov.sg/v1/environment/wind-speed",
-        speedReadings: data?.items?.[0]?.readings || [],
-        directionReadings: dirData?.items?.[0]?.readings || [],
-        timestamp: data?.items?.[0]?.timestamp,
+        speedReadings: data?.items?.[0]?.readings || [{ station_id: "S109", value: 6.5 }],
+        directionReadings: dirData?.items?.[0]?.readings || [{ station_id: "S109", value: 160 }],
+        timestamp: data?.items?.[0]?.timestamp || new Date().toISOString(),
       });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
+    } catch (e) {
+      console.warn("wind-speed fallback triggered", e);
     }
+    res.json({
+      success: true,
+      source: "fallback",
+      speedReadings: [{ station_id: "S109", value: 6.5 }],
+      directionReadings: [{ station_id: "S109", value: 160 }],
+      timestamp: new Date().toISOString(),
+    });
   });
 
   // ==========================================
@@ -335,7 +363,7 @@ async function startServer() {
         "forecast-24hr",
         "https://api.data.gov.sg/v1/environment/24-hour-weather-forecast"
       );
-      if (data) {
+      if (data && data.items) {
         return res.json({
           success: true,
           apiEndpoint: "https://api.data.gov.sg/v1/environment/24-hour-weather-forecast",
@@ -344,20 +372,20 @@ async function startServer() {
           periods: data.items?.[0]?.periods || [],
         });
       }
-      res.json({
-        success: true,
-        source: "fallback",
-        general: {
-          forecast: "Passing Showers",
-          relative_humidity: { low: 65, high: 95 },
-          temperature: { low: 25, high: 32 },
-          wind: { speed: { low: 10, high: 20 }, direction: "SSE" },
-        },
-        periods: [],
-      });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
+    } catch (e) {
+      console.warn("24hr-forecast fallback triggered", e);
     }
+    res.json({
+      success: true,
+      source: "fallback",
+      general: {
+        forecast: "Passing Showers",
+        relative_humidity: { low: 65, high: 95 },
+        temperature: { low: 25, high: 32 },
+        wind: { speed: { low: 10, high: 20 }, direction: "SSE" },
+      },
+      periods: [],
+    });
   });
 
   // ==========================================
@@ -376,19 +404,19 @@ async function startServer() {
           forecasts: data.items[0].forecasts || [],
         });
       }
-      res.json({
-        success: true,
-        source: "fallback",
-        forecasts: [
-          { day: "Tomorrow", forecast: "Thundery Showers", temperature: { low: 24, high: 31 } },
-          { day: "Day +2", forecast: "Moderate Rain", temperature: { low: 25, high: 32 } },
-          { day: "Day +3", forecast: "Passing Showers", temperature: { low: 24, high: 32 } },
-          { day: "Day +4", forecast: "Fair (Day)", temperature: { low: 26, high: 33 } },
-        ],
-      });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
+    } catch (e) {
+      console.warn("4day-outlook fallback triggered", e);
     }
+    res.json({
+      success: true,
+      source: "fallback",
+      forecasts: [
+        { day: "Tomorrow", forecast: "Thundery Showers", temperature: { low: 24, high: 31 } },
+        { day: "Day +2", forecast: "Moderate Rain", temperature: { low: 25, high: 32 } },
+        { day: "Day +3", forecast: "Passing Showers", temperature: { low: 24, high: 32 } },
+        { day: "Day +4", forecast: "Fair (Day)", temperature: { low: 26, high: 33 } },
+      ],
+    });
   });
 
   // ==========================================
@@ -409,7 +437,13 @@ async function startServer() {
       const readings = rainfallData?.items?.[0]?.readings || [];
       const tempReadings = tempData?.items?.[0]?.readings || [];
 
-      const mergedStations = stations.map((s: any) => {
+      const mergedStations = (stations.length > 0 ? stations : [
+        { id: "S109", name: "Clementi Road", location: { latitude: 1.32, longitude: 103.77 } },
+        { id: "S117", name: "Bantham Road", location: { latitude: 1.30, longitude: 103.75 } },
+        { id: "S107", name: "East Coast Parkway", location: { latitude: 1.31, longitude: 103.96 } },
+        { id: "S228", name: "Jurong West Street 73", location: { latitude: 1.34, longitude: 103.70 } },
+        { id: "S79", name: "Somerset Road", location: { latitude: 1.30, longitude: 103.83 } },
+      ]).map((s: any) => {
         const r = readings.find((item: any) => item.station_id === s.id);
         const t = tempReadings.find((item: any) => item.station_id === s.id);
         return {
@@ -430,8 +464,18 @@ async function startServer() {
         timestamp: rainfallData?.items?.[0]?.timestamp || new Date().toISOString(),
         stations: mergedStations,
       });
-    } catch (err: any) {
-      res.status(500).json({ success: false, error: err.message });
+    } catch (e) {
+      console.warn("radar-stations fallback triggered", e);
+      res.json({
+        success: true,
+        totalStations: 5,
+        rainActiveStations: 0,
+        timestamp: new Date().toISOString(),
+        stations: [
+          { id: "S109", name: "Clementi Road", latitude: 1.32, longitude: 103.77, rainfallMm: 0, temperature: 31, hasRain: false },
+          { id: "S228", name: "Jurong West", latitude: 1.34, longitude: 103.70, rainfallMm: 0, temperature: 31.5, hasRain: false },
+        ],
+      });
     }
   });
 
@@ -442,7 +486,7 @@ async function startServer() {
     try {
       const requestedArea = (req.query.area as string) || "Jurong West";
 
-      // Parallel fetch all real-time feeds
+      // Parallel fetch all real-time feeds safely
       const [forecastData, rainfallData, uvData, tempData, windData, humidityData] =
         await Promise.all([
           fetchWithCache<any>("forecast-2hr", "https://api.data.gov.sg/v1/environment/2-hour-weather-forecast"),
@@ -589,8 +633,29 @@ async function startServer() {
         },
       });
     } catch (err: any) {
-      console.error("[Weather Live Aggregator Error]:", err);
-      res.status(500).json({ error: "Failed to load live weather data", details: err.message });
+      console.warn("[Weather Live Aggregator Fallback]:", err);
+      const fallbackResult = calculateUmbrellaScore("Partly Cloudy", 0, 6, 8, 78);
+      res.json({
+        timestamp: new Date().toISOString(),
+        updateTime: "Just now",
+        selectedArea: "Jurong West",
+        selectedForecast: "Partly Cloudy",
+        towns: FALLBACK_TOWNS,
+        uvIndex: { value: 6, timestamp: new Date().toISOString(), status: "Moderate" },
+        nearestRainfall: { stationName: "Clementi Road", rainfallMm: 0, status: "Bone Dry" },
+        temperature: 31.2,
+        humidity: 78,
+        windSpeed: 7.5,
+        umbrellaScore: fallbackResult.score,
+        sunscreenScore: 57,
+        verdict: fallbackResult.verdict,
+        hotTake: QUIRKY_HOT_TAKES_BANK[0],
+        source: "fallback",
+        datasets: {
+          forecast2hr: "d_6580738cdd7db79374ed3152159fbd69",
+          rainfall: "d_1b676cd174a9af4704fdb3f9aa58ff5e",
+        },
+      });
     }
   });
 
@@ -598,7 +663,7 @@ async function startServer() {
   // 11. API: Umbrella Score Calculation Simulator
   // ==========================================
   app.post("/api/weather/calculate-index", (req, res) => {
-    const { forecast = "Cloudy", rainfallMm = 0, uvIndex = 6, windSpeed = 8, humidity = 75 } = req.body;
+    const { forecast = "Cloudy", rainfallMm = 0, uvIndex = 6, windSpeed = 8, humidity = 75 } = req.body || {};
     const result = calculateUmbrellaScore(forecast, Number(rainfallMm), Number(uvIndex), Number(windSpeed), Number(humidity));
     res.json({
       success: true,
@@ -612,18 +677,40 @@ async function startServer() {
   // 12. API: Gemini AI Quirky Hot Take & Excuse Generator
   // ==========================================
   app.post("/api/gemini/hot-take", async (req, res) => {
-    try {
-      const { area, forecast, rainfallMm, uvIndex, temperature, umbrellaScore } = req.body;
+    const { area = "Singapore", forecast = "Cloudy", rainfallMm = 0, uvIndex = 7.5, temperature = 32, umbrellaScore = 75 } = req.body || {};
 
-      if (process.env.GEMINI_API_KEY) {
+    const fallbackList = [
+      {
+        headline: "Crispy Roasted Human Alert!",
+        body: `UV is at ${uvIndex || 8.5}! If you walk under direct sunlight for 10 minutes without umbrella, you will become medium-rare char siew.`,
+        singlishVerdict: "TAKE UV BROLLY LAH",
+        excuseForBoss: "Boss, UV index exceeded my skin's warranty, had to seek emergency shelter at bubble tea shop.",
+      },
+      {
+        headline: "Sky Goin' To Open Tap Soon",
+        body: `Forecast in ${area || "town"} is '${forecast || "Passing Showers"}'. You know Singapore rain, 2 seconds drizzle then suddenly Niagara Falls!`,
+        singlishVerdict: "TAKE BROLLY CONFIRM",
+        excuseForBoss: "Boss, the rain was raining horizontally, umbrella inverted, delayed by aerodynamic physics.",
+      },
+      {
+        headline: "Safe For Now, But Don't Action",
+        body: `Rainfall is 0.0mm, but the cloud looks suspicious. Don't act hero leave umbrella at home, later regret until crying.`,
+        singlishVerdict: "BETTER SAFE THAN SORRY",
+        excuseForBoss: "Boss, I spent 15 minutes checking 4 different weather radar scans before daring to cross the road.",
+      },
+    ];
+
+    try {
+      const client = getGeminiClient();
+      if (client) {
         const prompt = `You are the Singapore Umbrella & UV Oracle, a hilariously quirky, witty, sarcastic Singlish-speaking weather auntie/uncle weather bot.
 Current Singapore Weather context:
-- Location: ${area || "Singapore"}
-- 2-Hour Forecast: ${forecast || "Cloudy"}
-- Real-time 5-min Rainfall: ${rainfallMm ?? 0} mm
-- UV Index: ${uvIndex ?? 7.5}
-- Temperature: ${temperature ?? 32}°C
-- Calculated Umbrella Need Score: ${umbrellaScore ?? 75}/100
+- Location: ${area}
+- 2-Hour Forecast: ${forecast}
+- Real-time 5-min Rainfall: ${rainfallMm} mm
+- UV Index: ${uvIndex}
+- Temperature: ${temperature}°C
+- Calculated Umbrella Need Score: ${umbrellaScore}/100
 
 Generate a super funny, quirky, memorable weather hot take / excuse for whether the user MUST bring an umbrella, sunscreen, or avoid walking outside. Include 1-2 witty Singlish particles (lah, lor, sia, chope, char siew, wet chicken, Defcon 1, auntie visor) naturally. Keep it punchy (1 to 2 sentences max!).
 
@@ -635,68 +722,53 @@ Output format (JSON):
   "excuseForBoss": "Funny 1-line excuse for being late due to weather"
 }`;
 
-        const response = await ai.models.generateContent({
+        // Add 3-second timeout to prevent stalling
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Gemini timeout")), 3000));
+        const genPromise = client.models.generateContent({
           model: "gemini-3.7-flash",
           contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-          },
+          config: { responseMimeType: "application/json" },
         });
 
-        const text = response.text;
+        const response: any = await Promise.race([genPromise, timeoutPromise]);
+        const text = response?.text;
         if (text) {
           const parsed = JSON.parse(text);
           return res.json(parsed);
         }
       }
-
-      // Offline / Fallback generator
-      const fallbackList = [
-        {
-          headline: "Crispy Roasted Human Alert!",
-          body: `UV is at ${uvIndex || 8.5}! If you walk under direct sunlight for 10 minutes without umbrella, you will become medium-rare char siew.`,
-          singlishVerdict: "TAKE UV BROLLY LAH",
-          excuseForBoss: "Boss, UV index exceeded my skin's warranty, had to seek emergency shelter at bubble tea shop.",
-        },
-        {
-          headline: "Sky Goin' To Open Tap Soon",
-          body: `Forecast in ${area || "town"} is '${forecast || "Passing Showers"}'. You know Singapore rain, 2 seconds drizzle then suddenly Niagara Falls!`,
-          singlishVerdict: "TAKE BROLLY CONFIRM",
-          excuseForBoss: "Boss, the rain was raining horizontally, umbrella inverted, delayed by aerodynamic physics.",
-        },
-        {
-          headline: "Safe For Now, But Don't Action",
-          body: `Rainfall is 0.0mm, but the cloud looks suspicious. Don't act hero leave umbrella at home, later regret until crying.`,
-          singlishVerdict: "BETTER SAFE THAN SORRY",
-          excuseForBoss: "Boss, I spent 15 minutes checking 4 different weather radar scans before daring to cross the road.",
-        },
-      ];
-      const pick = fallbackList[Math.floor(Math.random() * fallbackList.length)];
-      res.json(pick);
     } catch (err: any) {
-      console.error("[Gemini Hot Take Error]:", err);
-      res.json({
-        headline: "Rain God Watching You",
-        body: "The moment you leave your umbrella at home, the clouds will convene an emergency meeting above your head.",
-        singlishVerdict: "JUST BRING LAH",
-        excuseForBoss: "Delayed by sudden micro-monsoon over my specific block.",
-      });
+      console.warn("[Gemini Hot Take Fallback]:", err?.message);
     }
+
+    const pick = fallbackList[Math.floor(Math.random() * fallbackList.length)];
+    res.json(pick);
   });
 
   // ==========================================
-  // 13. API: Sheltered Route Advisor (Slide 3)
+  // 13. API: Sheltered Route Advisor
   // ==========================================
   app.post("/api/gemini/sheltered-route", async (req, res) => {
-    try {
-      const { origin, destination, rainIntensity } = req.body;
-      const startLoc = origin || "Jurong West MRT";
-      const endLoc = destination || "Hawker Centre";
+    const { origin = "Jurong East MRT", destination = "Jem & Westgate", rainIntensity = "Heavy rain & blazing UV" } = req.body || {};
 
-      if (process.env.GEMINI_API_KEY) {
+    const fallbackResponse = {
+      shelterRating: 92,
+      quirkyTip: "Walk strictly along the HDB block void deck edge and draft behind an auntie with a giant floral umbrella.",
+      landmarks: [
+        `Cut through ${origin} MRT underpass (100% dry)`,
+        "Enter connected shopping mall to enjoy free aircon & shelter (100% dry)",
+        "Follow the LTA covered walkway linkway towards HDB cluster (95% dry)",
+        `Perform the classic 5-second Singaporean sprint to reach ${destination}`
+      ],
+      singlishVerdict: "AUNTIE-APPROVED 90%+ DRY ROUTE",
+    };
+
+    try {
+      const client = getGeminiClient();
+      if (client) {
         const prompt = `You are the Singapore Master of Sheltered Walking Routes (Underground Linkways, Void Decks, Shopping Mall Tunnels, Covered Walkways Expert).
-The user wants to walk from "${startLoc}" to "${endLoc}".
-Current rain/weather status: ${rainIntensity || "Heavy rain & blazing UV"}.
+The user wants to walk from "${origin}" to "${destination}".
+Current rain/weather status: ${rainIntensity}.
 
 Provide a quirky, practical and hilarious step-by-step sheltered walking route strategy avoiding rain and sun!
 Output JSON:
@@ -707,52 +779,45 @@ Output JSON:
   "singlishVerdict": "100% DRY GUARANTEED (except 3 steps)"
 }`;
 
-        const response = await ai.models.generateContent({
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Gemini timeout")), 3000));
+        const genPromise = client.models.generateContent({
           model: "gemini-3.7-flash",
           contents: prompt,
-          config: {
-            responseMimeType: "application/json",
-          },
+          config: { responseMimeType: "application/json" },
         });
 
-        if (response.text) {
+        const response: any = await Promise.race([genPromise, timeoutPromise]);
+        if (response?.text) {
           return res.json(JSON.parse(response.text));
         }
       }
-
-      res.json({
-        shelterRating: 88,
-        quirkyTip: "Walk strictly along the HDB block void deck edge and draft behind an auntie with a giant floral umbrella.",
-        landmarks: [
-          `Cut through ${startLoc} MRT underpass (100% dry)`,
-          "Enter connected shopping mall to enjoy free aircon & shelter (100% dry)",
-          "Follow the LTA covered walkway linkway towards HDB cluster (95% dry)",
-          `Perform the classic 5-second Singaporean sprint to reach ${endLoc}`
-        ],
-        singlishVerdict: "AUNTIE-APPROVED 90% DRY ROUTE",
-      });
     } catch (err: any) {
-      res.json({
-        shelterRating: 85,
-        quirkyTip: "Use HDB void decks like Pac-Man tunnels to avoid both raindrops and UV rays.",
-        landmarks: [
-          "MRT station underground exit",
-          "Continuous covered linkway",
-          "Cut through multi-storey carpark level 1",
-          "Direct covered porch entrance"
-        ],
-        singlishVerdict: "SOLID SHELTER STRATEGY",
-      });
+      console.warn("[Gemini Sheltered Route Fallback]:", err?.message);
     }
+
+    res.json(fallbackResponse);
   });
 
   // ==========================================
   // 14. API: Hourly Breakdown Analysis
   // ==========================================
   app.post("/api/gemini/hourly-analysis", async (req, res) => {
+    const { area = "Jurong West", currentScore = 65 } = req.body || {};
+
+    const fallbackHourly = {
+      hourly: [
+        { hour: "+1 hr", umbrellaRisk: Math.min(100, Math.max(10, currentScore + 10)), recommendation: "Rain clouds building up over Western reservoir", icon: "rain" },
+        { hour: "+2 hr", umbrellaRisk: Math.min(100, Math.max(10, currentScore + 20)), recommendation: "Peak rain risk! Carry brolly without fail", icon: "thunder" },
+        { hour: "+3 hr", umbrellaRisk: Math.max(10, currentScore - 15), recommendation: "Shower dissipating into tropical steam", icon: "cloud" },
+        { hour: "+4 hr", umbrellaRisk: 75, recommendation: "Blazing UV 9+! Sun umbrella required", icon: "sun" },
+        { hour: "+5 hr", umbrellaRisk: 35, recommendation: "Cool evening breeze setting in", icon: "fair" },
+        { hour: "+6 hr", umbrellaRisk: 20, recommendation: "Low rain risk for dinner run", icon: "fair" },
+      ],
+    };
+
     try {
-      const { area = "Jurong West", currentScore = 65 } = req.body;
-      if (process.env.GEMINI_API_KEY) {
+      const client = getGeminiClient();
+      if (client) {
         const prompt = `Give a 6-hour umbrella need forecast for ${area} in Singapore with current base umbrella score ${currentScore}.
 Output JSON format:
 {
@@ -765,29 +830,24 @@ Output JSON format:
     {"hour": "+6 hr", "umbrellaRisk": 20, "recommendation": "Safe to head home without worry", "icon": "fair"}
   ]
 }`;
-        const response = await ai.models.generateContent({
+
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Gemini timeout")), 3000));
+        const genPromise = client.models.generateContent({
           model: "gemini-3.7-flash",
           contents: prompt,
           config: { responseMimeType: "application/json" },
         });
-        if (response.text) {
+
+        const response: any = await Promise.race([genPromise, timeoutPromise]);
+        if (response?.text) {
           return res.json(JSON.parse(response.text));
         }
       }
-
-      res.json({
-        hourly: [
-          { hour: "+1 hr", umbrellaRisk: Math.min(100, currentScore + 10), recommendation: "Rain clouds building up over Western reservoir", icon: "rain" },
-          { hour: "+2 hr", umbrellaRisk: Math.min(100, currentScore + 20), recommendation: "Peak rain risk! Carry brolly without fail", icon: "thunder" },
-          { hour: "+3 hr", umbrellaRisk: Math.max(10, currentScore - 15), recommendation: "Shower dissipating into tropical steam", icon: "cloud" },
-          { hour: "+4 hr", umbrellaRisk: 75, recommendation: "Blazing UV 9+! Sun umbrella required", icon: "sun" },
-          { hour: "+5 hr", umbrellaRisk: 35, recommendation: "Cool evening breeze setting in", icon: "fair" },
-          { hour: "+6 hr", umbrellaRisk: 20, recommendation: "Low rain risk for dinner run", icon: "fair" },
-        ],
-      });
-    } catch (e: any) {
-      res.status(500).json({ error: e.message });
+    } catch (err: any) {
+      console.warn("[Gemini Hourly Analysis Fallback]:", err?.message);
     }
+
+    res.json(fallbackHourly);
   });
 
   // Vite middleware setup
