@@ -1,0 +1,40 @@
+@import "tailwindcss";
+
+@layer utilities {
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Neo-brutalist hard box shadows */
+  .shadow-brutal-sm {
+    box-shadow: 3px 3px 0px 0px #000000;
+  }
+  
+  .shadow-brutal {
+    box-shadow: 5px 5px 0px 0px #000000;
+  }
+
+  .shadow-brutal-lg {
+    box-shadow: 8px 8px 0px 0px #000000;
+  }
+
+  .shadow-brutal-white {
+    box-shadow: 5px 5px 0px 0px #ffffff;
+  }
+}
+
+body {
+  background-color: #FFD93D;
+  color: #000000;
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Soaked or Sunburnt? - SG Live Umbrella Index",
+  "description": "A delightfully quirky real-time umbrella and UV index oracle powered by live Singapore weather data (data.gov.sg) and AI.",
+  "requestFramePermissions": ["geolocation", "notifications"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
