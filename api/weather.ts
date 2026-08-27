@@ -35,7 +35,15 @@ export async function fetchWithCache<T>(key: string, url: string, fallbackData?:
       if (cached) return cached.data as T;
       return fallbackData || null;
     }
-    const data = await res.json();
+    const rawText = await res.text();
+    let data: any;
+    try {
+      data = JSON.parse(rawText);
+    } catch (parseErr) {
+      console.warn(`[API Service Warning] Response from ${url} was not valid JSON:`, rawText.slice(0, 100));
+      if (cached) return cached.data as T;
+      return fallbackData || null;
+    }
     if (data && typeof data.code === "number" && data.code !== 0 && cached) {
       return cached.data as T;
     }

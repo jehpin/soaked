@@ -52,8 +52,16 @@ export default function App() {
     setError(null);
     try {
       const res = await fetch(`/api/weather/live?area=${encodeURIComponent(area)}`);
-      if (!res.ok) throw new Error('Failed to load weather data');
-      const data = await res.json();
+      const rawText = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(rawText);
+      } catch (parseErr) {
+        throw new Error(`API returned invalid JSON (${res.status}): ${rawText.slice(0, 80)}`);
+      }
+      if (!res.ok) {
+        throw new Error(data?.error || `Failed to load weather data (${res.status})`);
+      }
       setWeather(data);
     } catch (err: any) {
       console.error(err);

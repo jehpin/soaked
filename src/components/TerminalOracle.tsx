@@ -58,7 +58,13 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
             currentScore: weather.umbrellaScore,
           }),
         });
-        const data = await res.json();
+        const rawText = await res.text();
+        let data: any = {};
+        try {
+          data = JSON.parse(rawText);
+        } catch {
+          console.warn('Hourly response was not JSON:', rawText.slice(0, 50));
+        }
         if (data.hourly && Array.isArray(data.hourly)) {
           setHourlyForecast(data.hourly);
         } else {
@@ -129,8 +135,23 @@ export const TerminalOracle: React.FC<TerminalOracleProps> = ({
           umbrellaScore: weather.umbrellaScore,
         }),
       });
-      const data = await res.json();
-      setCustomTake(data);
+      const rawText = await res.text();
+      let data: any = null;
+      try {
+        data = JSON.parse(rawText);
+      } catch {
+        console.warn('Hot take response not JSON', rawText.slice(0, 50));
+      }
+      if (data && (data.headline || data.body)) {
+        setCustomTake(data);
+      } else {
+        setCustomTake({
+          headline: "Crispy Roasted Human Alert!",
+          body: `UV is high! If you walk under direct sunlight without umbrella, you will become medium-rare char siew.`,
+          singlishVerdict: "TAKE UV BROLLY LAH",
+          excuseForBoss: "Boss, UV index exceeded my skin warranty, had to seek emergency shelter.",
+        });
+      }
 
       if (weather.umbrellaScore > 60) {
         playThunderRumble();

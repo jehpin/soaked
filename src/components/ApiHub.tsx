@@ -294,7 +294,19 @@ export const ApiHub: React.FC = () => {
       setResponseTime(elapsed);
       setStatusCode(res.status);
 
-      const json = await res.json();
+      const rawText = await res.text();
+      let json: any = null;
+      try {
+        json = JSON.parse(rawText);
+      } catch {
+        json = {
+          httpStatus: res.status,
+          httpStatusText: res.statusText,
+          contentType: res.headers.get('content-type') || 'text/plain',
+          responseSnippet: rawText.length > 300 ? rawText.slice(0, 300) + '...' : rawText,
+          note: 'Endpoint returned a non-JSON payload.'
+        };
+      }
       setResponseData(json);
       playUmbrellaPop();
     } catch (err: any) {

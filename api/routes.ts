@@ -853,3 +853,13 @@ apiRouter.post("/gemini/hourly-analysis", async (req: Request, res: Response) =>
     });
   }
 });
+
+// 404 Handler for all unmatched /api/* routes (prevents falling through to HTML index.html)
+apiRouter.all("*", (req: Request, res: Response) => {
+  res.status(404).json({
+    error: "API endpoint not found",
+    path: req.originalUrl || req.url,
+    method: req.method,
+  });
+});
+
