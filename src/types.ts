@@ -31,6 +31,32 @@ export interface WindReading {
   speedKnots: number;
 }
 
+export interface AirQualityData {
+  psi24Hr: {
+    west?: number;
+    east?: number;
+    central?: number;
+    north?: number;
+    south?: number;
+    national?: number;
+  };
+  pm25_1Hr: {
+    west?: number;
+    east?: number;
+    central?: number;
+    north?: number;
+    south?: number;
+  };
+  overallPsi: number;
+  overallPm25: number;
+  status: 'Good' | 'Moderate' | 'Unhealthy';
+}
+
+export interface TransportData {
+  availableTaxis: number;
+  rainRushStatus: string;
+}
+
 export interface SGWeatherData {
   timestamp: string;
   updateTime: string;
@@ -46,15 +72,14 @@ export interface SGWeatherData {
   temperature: number;
   humidity: number;
   windSpeed: number;
+  airQuality?: AirQualityData;
+  transport?: TransportData;
   umbrellaScore: number; // 0 to 100
   sunscreenScore: number; // 0 to 100
   verdict: 'LEAVE IT' | 'PROBABLY OK' | 'CONSIDER BRINGING' | 'TAKE IT!' | 'EMERGENCY BROLLY DEFCON 1';
   hotTake: string;
-  source: 'live_data_gov_sg' | 'fallback';
-  datasets?: {
-    forecast2hr: string;
-    rainfall: string;
-  };
+  source: 'live_data_gov_sg_v2' | 'live_data_gov_sg' | 'fallback';
+  endpoints?: Record<string, string>;
 }
 
 export interface ShelteredRouteAdvice {
@@ -94,10 +119,12 @@ export interface FourDayOutlookItem {
 export interface ApiEndpointSpec {
   id: string;
   name: string;
+  category: 'v2-weather' | 'v1-transport' | 'composite' | 'gemini-ai';
   method: 'GET' | 'POST';
   endpoint: string;
-  datasetId?: string;
+  govUrl: string;
+  version: 'v2 (wrapped)' | 'v1 (bare)' | 'internal';
   description: string;
-  govUrl?: string;
+  datasetId?: string;
   sampleBody?: any;
 }
