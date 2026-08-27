@@ -23,7 +23,7 @@ export function getGeminiClient(): GoogleGenAI | null {
   return geminiClient;
 }
 
-async function callGeminiJson<T>(prompt: string, timeoutMs: number = 15000): Promise<T> {
+async function callGeminiJson<T>(prompt: string, timeoutMs: number = 20000): Promise<T> {
   const apiKey = getGeminiApiKey();
   if (!apiKey) {
     throw new Error("CREDENTIAL_NOT_CONFIGURED");
@@ -34,22 +34,34 @@ async function callGeminiJson<T>(prompt: string, timeoutMs: number = 15000): Pro
     throw new Error("CREDENTIAL_NOT_CONFIGURED");
   }
 
-  const timeoutPromise = new Promise<never>((_, reject) =>
-    setTimeout(() => reject(new Error("Gemini request timeout")), timeoutMs)
-  );
-
-  const genPromise = client.models.generateContent({
-    model: "gemini-3.7-flash",
-    contents: prompt,
-    config: { responseMimeType: "application/json" },
+  let timer: NodeJS.Timeout | null = null;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error("Gemini request timeout")), timeoutMs);
   });
 
-  const response: any = await Promise.race([genPromise, timeoutPromise]);
-  const text = response?.text;
-  if (!text) {
-    throw new Error("Empty response from Gemini");
+  try {
+    const genPromise = client.models.generateContent({
+      model: "gemini-3.7-flash",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        thinkingConfig: {
+          thinkingBudget: 0,
+        },
+      },
+    });
+
+    const response: any = await Promise.race([genPromise, timeoutPromise]);
+    if (timer) clearTimeout(timer);
+    const text = response?.text;
+    if (!text) {
+      throw new Error("Empty response from Gemini");
+    }
+    return JSON.parse(text) as T;
+  } catch (err) {
+    if (timer) clearTimeout(timer);
+    throw err;
   }
-  return JSON.parse(text) as T;
 }
 
 export async function generateHotTake(params: {
